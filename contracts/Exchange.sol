@@ -52,5 +52,17 @@ contract Exchange {
     require(exchangeData[_token].initial_price_per_1000000000>0,"token does not exist");
 
   }
+  function buy(address _token,uint amount) external payable{
+
+  }
+  function sell(address _token,uint amount) external{
+  
+  }
+  function getSellPrice(address _token,uint amount) external view returns(uint){
+
+  }
+  function getBuyPrice(address _token,uint amount) external view returns(uint){
+
+  }
   event NewToken(address tokenAdr);
 }
