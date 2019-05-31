@@ -1,0 +1,33 @@
+{
+  "name": "poadapps.exchange",
+  "version": "1.0.0",
+  "description": "Exchange and token creation SC for poadapps.com",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poadapps/Contracts.git"
+  },
+  "keywords": [
+    "Ethereum"
+  ],
+  "author": "Adam Skrodzki",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/poadapps/Contracts/issues"
+  },
+  "homepage": "https://github.com/poadapps/Contracts#readme",
+  "dependencies": {
+    "ethers": "^4.0.28",
+    "openzeppelin-solidity": "^2.3.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "openzeppelin-test-helpers": "^0.4.0"
+  }
+}
