@@ -33,6 +33,7 @@ contract Exchange {
     
     ITokenInitialize(address(p)).initialize(abb,name,18,supply);
     emit NewToken(address(p));
+    ITokenInitialize(address(p)).transfer(msg.sender,supply);
     
   }
 

@@ -42,7 +42,7 @@ contract('Exchange', function(accounts) {
           return undefined;
         }
       }).filter(x=>x!=undefined);
-      assert.equal(transferEvents.length,1);
+      assert.equal(transferEvents.length,2);
     })
     it("NewToken(address) should have non zero address",async function(){
       event = expectEvent.inLogs(this.logs, 'NewToken', {
