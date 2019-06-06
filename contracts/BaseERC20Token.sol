@@ -1,7 +1,8 @@
 pragma solidity ^0.5.0;
 import "/openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol";
+import "/openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol";
 
-contract BaseERC20Token is ERC20Mintable {
+contract BaseERC20Token is ERC20Mintable,ERC20Burnable {
   string private _name;
     string private _symbol;
     uint8 private _decimals;
