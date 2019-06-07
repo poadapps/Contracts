@@ -21,8 +21,9 @@ contract Exchange {
     uint total_tokens;
   }
 
-  mapping (address=>TokenExchangeData) exchangeData;
-  mapping(bytes32=>uint128) userShares;
+  mapping (address=>TokenExchangeData) public exchangeData;
+  mapping(bytes32=>uint128) public userShares;
+  address[] public legal_tokens;
 
 
   constructor(address _tokenTemplate) public {
@@ -39,7 +40,9 @@ contract Exchange {
     require(sumForAmount<totalFees,'not enought fees collected');
     address payable _that = address(uint160(address(this)));
     buyInternal(exchangeCreatorToken,amount,totalFees,_that);
-    BaseERC20Token(exchangeCreatorToken).burn(BaseERC20Token(exchangeCreatorToken).balanceOf(address(this)));
+    emit FeesBurned(totalFees,sumForAmount,amount);
+    BaseERC20Token(exchangeCreatorToken).burn(amount);
+    totalFees = totalFees -sumForAmount;
   }
 
   function createToken(string memory abb,string memory name,uint256 supply) public {
@@ -53,17 +56,19 @@ contract Exchange {
 
   function addToExchange(address _token,uint _supply,uint16 collateralIn10000, uint256 initialPrice) external payable{
     require(exchangeData[_token].total_shares==0,"token already added");
-    uint expectedCollateral = initialPrice*collateralIn10000/100000*_supply/(10**18);
+    uint expectedCollateral = initialPrice*collateralIn10000/10000*_supply/(10**18);
     require(expectedCollateral<=msg.value,"collateral to small to register token");
-    require(IERC20(_token).transferFrom(msg.sender,address(this),_supply),'no tokens to transfer or no allowence');
     exchangeData[_token].total_shares = 10**18;
     exchangeData[_token].total_collateral = expectedCollateral;
     exchangeData[_token].total_tokens = _supply;
     exchangeData[_token].collateral_parts_per_10000 = collateralIn10000;
     address(msg.sender).transfer(msg.value-expectedCollateral);
     userShares[keccak256(abi.encodePacked(msg.sender,_token))]=exchangeData[_token].total_shares;
+    legal_tokens.push(_token);
+    require(IERC20(_token).transferFrom(msg.sender,address(this),_supply),'no tokens to transfer or no allowence');
 
   }
+
   function addLiquidity(address _token) external payable{
     require(exchangeData[_token].collateral_parts_per_10000>0,"token does not exist");
     uint currentPriceFor18 = exchangeData[_token].total_collateral/exchangeData[_token].collateral_parts_per_10000*10000*(10**18)/exchangeData[_token].total_tokens;
@@ -117,8 +122,10 @@ contract Exchange {
     totalFees = totalFees+fee;
     require(sum>fee+sumForTokens,'not enaught funds');
     sendTokensFromPoolInternal(recipient,_token,amount);
-    exchangeData[_token].total_collateral=exchangeData[_token].total_collateral+sum;
+    emit TokensBought(_token,amount,sumForTokens);
+    exchangeData[_token].total_collateral=exchangeData[_token].total_collateral+sum - fee;
     sendEthFromPoolInternal(recipient,_token,sum- sumForTokens - fee);
+    emit ExchangeDetails(_token,exchangeData[_token].total_tokens,exchangeData[_token].total_collateral,exchangeData[_token].collateral_parts_per_10000);
   }
 
   function sell(address _token,uint amount) external{
@@ -126,8 +133,11 @@ contract Exchange {
     uint256 fee = sumForTokens*3/10000;
     totalFees = totalFees+fee;
     require(IERC20(_token).transferFrom(msg.sender,address(this),amount),'no tokens to transfer or no allowence');
+    emit TokensSold(_token,amount,sumForTokens);
     exchangeData[_token].total_tokens=exchangeData[_token].total_tokens+amount;
     sendEthFromPoolInternal(msg.sender,_token,sumForTokens-fee);
+    exchangeData[_token].total_collateral=exchangeData[_token].total_collateral - fee;
+    emit ExchangeDetails(_token,exchangeData[_token].total_tokens,exchangeData[_token].total_collateral,exchangeData[_token].collateral_parts_per_10000);
   }
   function getSellPrice(address _token,uint amount) public view returns(uint){
     uint price_per_10_18 = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/(exchangeData[_token].total_tokens+amount*10000/exchangeData[_token].collateral_parts_per_10000);
@@ -137,5 +147,18 @@ contract Exchange {
     uint price_per_10_18 = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/(exchangeData[_token].total_tokens-amount*10000/exchangeData[_token].collateral_parts_per_10000);
     return price_per_10_18*amount/(10**18);
   }
+
+  function getAllPrices(address[] memory tokens) public view returns(uint256[] memory){
+    uint[] memory retVals = new uint[](tokens.length);
+    for(uint i=0;i<tokens.length;i++){
+      retVals[i]=getBuyPrice(tokens[i],1);
+    }
+    return retVals;
+  }
+
   event NewToken(address tokenAdr);
+  event TokensBought(address token,uint amount,uint totalSpent);
+  event TokensSold(address token,uint amount,uint totalSpent);
+  event ExchangeDetails(address token,uint token_supply,uint collateral_supply,uint16 collateral_per_10000);
+  event FeesBurned(uint initial_amount,uint amount_burned,uint tokens_amount_burned);
 }

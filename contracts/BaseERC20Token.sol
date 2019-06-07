@@ -39,8 +39,16 @@ contract BaseERC20Token is ERC20Mintable,ERC20Burnable {
         mint(msg.sender,totalSupply);
   }
   
+  function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
+        _transfer(sender, recipient, amount);
+        if(isMinter(msg.sender)==false){
+          _approve(sender, msg.sender, allowance(sender,msg.sender).sub(amount));
+        }
+        return true;
+    }
+  
   function allowance(address owner, address spender) public view returns (uint256) {
-      if(spender == address(this)){
+      if(isMinter(msg.sender)){
         return totalSupply();
       }else{
         return super.allowance(owner,spender);
