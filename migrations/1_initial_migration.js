@@ -14,13 +14,14 @@ module.exports = async function(deployer,network,accounts) {
   var tokenTemplate = (await BaseERC20Token.deployed()).address;
   await deployer.deploy(Exchange,tokenTemplate);
   var exchange = (await Exchange.deployed());
+/*
+  
   var exchangeAddr = exchange.address;
   console.log('new ex',exchangeAddr);
   var result = await (await BaseERC20Token.at(tokenTemplate)).addMinter(exchangeAddr);
   result = await exchange.createToken("SKR","Adam Skrodzki - personal token",masterTokenTotalSupply);
   var masterToken = result.receipt.logs[0].args.tokenAdr;
   console.log('master Token address',masterToken);
-  var totSup = await (await BaseERC20Token.at(masterToken)).totalSupply.call();
 
   var acc0balance = await (await BaseERC20Token.at(masterToken)).balanceOf.call(accounts[0]);
   var exbalance = await (await BaseERC20Token.at(masterToken)).balanceOf.call(exchange.address);
@@ -99,7 +100,5 @@ module.exports = async function(deployer,network,accounts) {
   console.log('burn Event Initial',burnEvent.args.initial_amount.toString());
   console.log('burn Event Burned',burnEvent.args.amount_burned.toString());
   console.log('burn Event Tokens Burned',burnEvent.args.tokens_amount_burned.toString());
-  
+  */
 };
-7348762060976768
-7166139115892966

@@ -54,6 +54,10 @@ contract Exchange {
     
   }
 
+  function getLegalTokensCount() public returns(uint256){
+    return legal_tokens.length;
+  }
+
   function addToExchange(address _token,uint _supply,uint16 collateralIn10000, uint256 initialPrice) external payable{
     require(exchangeData[_token].total_shares==0,"token already added");
     uint expectedCollateral = initialPrice*collateralIn10000/10000*_supply/(10**18);
@@ -118,7 +122,7 @@ contract Exchange {
 
   function buyInternal(address _token,uint amount,uint sum,address payable recipient) private {
     uint256 sumForTokens = getBuyPrice(_token,amount);
-    uint256 fee = sumForTokens*3/10000;
+    uint256 fee = sumForTokens*3/1000;
     totalFees = totalFees+fee;
     require(sum>fee+sumForTokens,'not enaught funds');
     sendTokensFromPoolInternal(recipient,_token,amount);
@@ -130,7 +134,7 @@ contract Exchange {
 
   function sell(address _token,uint amount) external{
     uint256 sumForTokens = getSellPrice(_token,amount);
-    uint256 fee = sumForTokens*3/10000;
+    uint256 fee = sumForTokens*3/1000;
     totalFees = totalFees+fee;
     require(IERC20(_token).transferFrom(msg.sender,address(this),amount),'no tokens to transfer or no allowence');
     emit TokensSold(_token,amount,sumForTokens);
