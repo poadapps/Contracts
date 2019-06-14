@@ -24,6 +24,7 @@
   "homepage": "https://github.com/poadapps/Contracts#readme",
   "dependencies": {
     "openzeppelin-solidity": "^2.3.0",
+    "vuex": "^3.1.1",
     "web3": "^1.0.0-beta.55"
   },
   "devDependencies": {

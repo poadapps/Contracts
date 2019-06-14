@@ -14,6 +14,19 @@ module.exports = async function(deployer,network,accounts) {
   var tokenTemplate = (await BaseERC20Token.deployed()).address;
   await deployer.deploy(Exchange,tokenTemplate);
   var exchange = (await Exchange.deployed());
+  var exchangeAddr = exchange.address;
+  console.log('new ex',exchangeAddr);
+  var result = await (await BaseERC20Token.at(tokenTemplate)).addMinter(exchangeAddr);
+  result = await exchange.createToken("SKR","Adam Skrodzki - personal token",masterTokenTotalSupply);
+  var masterToken = result.receipt.logs[0].args.tokenAdr;
+  console.log('master Token address',masterToken);
+  await exchange.setCreator(masterToken);
+  await exchange.addToExchange(masterToken,
+    masterTokenExchangeSupply,
+    partsPer10000Collateral,
+    priceOfMasterTokenInDAI,
+    {value : collateralForExchange});
+
 /*
   
   var exchangeAddr = exchange.address;
