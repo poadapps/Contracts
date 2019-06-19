@@ -21,11 +21,11 @@
 export default {
   name: 'HelloWorld',
   beforeCreate () {
-    this.$store.dispatch('readBlockchain')
-    this.$store.dispatch('getTokenName')
-    this.$store.dispatch('persistTokenListInLocalStorage')
-    this.$store.dispatch('getTokenListFromLocalStorage').then(()=>{
-      this.$store.dispatch('getTokenListFromBlockchain')
+    this.$store.dispatch('universe/readBlockchain')
+    this.$store.dispatch('universe/getMainTokenName')
+    this.$store.dispatch('exchangeList/persistTokenListInLocalStorage')
+    this.$store.dispatch('exchangeList/getTokenListFromLocalStorage').then(()=>{
+      this.$store.dispatch('exchangeList/getTokenListFromBlockchain')
     });
   },
   data () {
@@ -40,13 +40,13 @@ export default {
   },
   computed: {
     blockHeight () {
-      return this.$store.state.blockHeight;
+      return this.$store.state.universe.blockHeight;
       },
     mainName () {
-      return this.$store.state.mainTokenName;
+      return this.$store.state.universe.mainTokenName;
     },
     tokenList (){
-      return this.$store.state.ListedTokens;
+      return this.$store.state.exchangeList.ListedTokens;
     }
    }
 }

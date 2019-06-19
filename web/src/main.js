@@ -16,7 +16,10 @@ Vue.config.productionTip = false
 
 getWeb3.then((contracts)=>{
 
-  var store = new Vuex.Store(storeContentFactory(contracts));
+  var store = new Vuex.Store(
+    {
+      modules:storeContentFactory(contracts)
+    });
   /* eslint-disable no-new */
   new Vue({
     el: '#app',
