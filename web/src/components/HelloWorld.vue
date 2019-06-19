@@ -9,6 +9,11 @@
     <div>
     Main Token Name : {{mainName}}
     </div>
+    <div>
+      <div v-for="(item, id) in tokenList" :key="id">
+       {{item.name}}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -18,6 +23,10 @@ export default {
   beforeCreate () {
     this.$store.dispatch('readBlockchain')
     this.$store.dispatch('getTokenName')
+    this.$store.dispatch('persistTokenListInLocalStorage')
+    this.$store.dispatch('getTokenListFromLocalStorage').then(()=>{
+      this.$store.dispatch('getTokenListFromBlockchain')
+    });
   },
   data () {
     return {
@@ -30,12 +39,15 @@ export default {
     }
   },
   computed: {
-   blockHeight () {
-     return this.$store.state.blockHeight;
-     },
-   mainName () {
-     return this.$store.state.mainTokenName;
-   }
+    blockHeight () {
+      return this.$store.state.blockHeight;
+      },
+    mainName () {
+      return this.$store.state.mainTokenName;
+    },
+    tokenList (){
+      return this.$store.state.ListedTokens;
+    }
    }
 }
 </script>

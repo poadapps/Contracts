@@ -8,7 +8,8 @@ var contracts = new Promise((res,rej)=>{
     var cntrct = {
         exchange:undefined,
         mainToken:undefined,
-        web3:undefined
+        web3:undefined,
+        getToken:undefined
     }
     try{
 
@@ -19,6 +20,12 @@ var contracts = new Promise((res,rej)=>{
                 var abi1 = exchange.abi;
                 var networkDataOfERC20 = erc20.networks[id];
                 var abi2 = erc20.abi;
+                cntrct.getToken = function(adr){
+                    return cntrct.web3.eth.Contract(
+                        abi2,
+                        adr,
+                    );
+                }
                 cntrct.exchange=cntrct.web3.eth.Contract(
                     abi1,
                     networkDataOfExchange.address,

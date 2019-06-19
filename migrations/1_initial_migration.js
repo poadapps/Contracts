@@ -4,8 +4,8 @@ const BaseERC20Token = artifacts.require("BaseERC20Token");
 
 module.exports = async function(deployer,network,accounts) {
   var masterTokenTotalSupply = web3.utils.toWei("1000000",'ether');
-  var masterTokenExchangeSupply = web3.utils.toWei("5000",'ether');
-  var collateralForExchange = web3.utils.toWei("99",'ether');
+  var masterTokenExchangeSupply = web3.utils.toWei("500",'ether');
+  var collateralForExchange = web3.utils.toWei("10",'ether');
   var priceOfMasterTokenInDAI = web3.utils.toWei("1",'ether');
   var amountToBuy = web3.utils.toWei("1",'ether');
   var partsPer10000Collateral = "100";
@@ -22,6 +22,13 @@ module.exports = async function(deployer,network,accounts) {
   console.log('master Token address',masterToken);
   await exchange.setCreator(masterToken);
   await exchange.addToExchange(masterToken,
+    masterTokenExchangeSupply,
+    partsPer10000Collateral,
+    priceOfMasterTokenInDAI,
+    {value : collateralForExchange});
+  result = await exchange.createToken("LAME","Lucek Mech - personal token",masterTokenTotalSupply);
+  var anotherToken = result.receipt.logs[0].args.tokenAdr;
+  await exchange.addToExchange(anotherToken,
     masterTokenExchangeSupply,
     partsPer10000Collateral,
     priceOfMasterTokenInDAI,

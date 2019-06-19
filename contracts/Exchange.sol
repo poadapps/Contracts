@@ -2,17 +2,20 @@ pragma solidity ^0.5.0;
 import "./Proxy.sol";
 import "./BaseERC20Token.sol";
 import "/openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
+import "/openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 interface ITokenInitialize {
   function initialize(string calldata sym,string calldata nm,uint8 dec,uint256 totalSupply) external;
 }
 
-contract Exchange {
+contract Exchange is Ownable {
 
   address public tokenTemplate ;
   address public exchangeCreatorToken ;
 
   uint public totalFees;
+
+  uint public createTokenPrice = 5*(10**18);
 
   struct TokenExchangeData{
     uint16 collateral_parts_per_10000;
@@ -23,6 +26,7 @@ contract Exchange {
 
   mapping (address=>TokenExchangeData) public exchangeData;
   mapping(bytes32=>uint128) public userShares;
+  mapping(address=>bool) public createdTokens;
   address[] public legal_tokens;
 
 
@@ -33,6 +37,12 @@ contract Exchange {
   function setCreator(address _creator) public {
     require(exchangeCreatorToken==address(0),'token can be set only once');
     exchangeCreatorToken = _creator;
+  }
+
+  function decreaseFee(uint newFee) public onlyOwner {
+    require(newFee<createTokenPrice,'fee can be only decreased');
+    require(newFee*2>createTokenPrice,'fee can not be decreased too fast');
+    createTokenPrice = newFee;
   }
 
   function burnFees(uint amount) public{
@@ -47,19 +57,26 @@ contract Exchange {
 
   function createToken(string memory abb,string memory name,uint256 supply) public {
     Proxy p = new Proxy(tokenTemplate);
-    
+
     ITokenInitialize(address(p)).initialize(abb,name,18,supply);
-    emit NewToken(address(p));
+    emit NewToken(msg.sender,address(p));
     IERC20(address(p)).transfer(msg.sender,supply);
-    
+    createdTokens[address(p)]=true;
   }
 
-  function getLegalTokensCount() public returns(uint256){
+  function getLegalTokensCount() public view returns(uint256){
     return legal_tokens.length;
   }
 
   function addToExchange(address _token,uint _supply,uint16 collateralIn10000, uint256 initialPrice) external payable{
     require(exchangeData[_token].total_shares==0,"token already added");
+
+    require(IERC20(address(exchangeCreatorToken)).balanceOf(msg.sender)>=createTokenPrice,"You need exchange creator's tokens to pay");
+
+    IERC20(address(exchangeCreatorToken)).transferFrom(msg.sender,address(this),createTokenPrice);
+
+    require(createdTokens[_token],"token must be created by this contract");
+
     uint expectedCollateral = initialPrice*collateralIn10000/10000*_supply/(10**18);
     require(expectedCollateral<=msg.value,"collateral to small to register token");
     exchangeData[_token].total_shares = 10**18;
@@ -71,6 +88,11 @@ contract Exchange {
     legal_tokens.push(_token);
     require(IERC20(_token).transferFrom(msg.sender,address(this),_supply),'no tokens to transfer or no allowence');
 
+    emit NewExchange(_token,
+      exchangeData[_token].total_tokens,
+      exchangeData[_token].total_collateral,
+      exchangeData[_token].collateral_parts_per_10000,
+      getBuyPrice(_token, 10**18));
   }
 
   function addLiquidity(address _token) external payable{
@@ -82,6 +104,7 @@ contract Exchange {
     exchangeData[_token].total_tokens = exchangeData[_token].total_tokens+expectedAmount;
     exchangeData[_token].total_collateral = exchangeData[_token].total_collateral+msg.value;
     userShares[keccak256(abi.encodePacked(msg.sender,_token))]=uint128(userShares[keccak256(abi.encodePacked(msg.sender,_token))]+newShares);
+    exchangeData[_token].total_shares = exchangeData[_token].total_shares + uint128(newShares);
 
   }
   function removeLiquidity(address _token,uint128 shares_to_redeem) external{
@@ -129,7 +152,11 @@ contract Exchange {
     emit TokensBought(_token,amount,sumForTokens);
     exchangeData[_token].total_collateral=exchangeData[_token].total_collateral+sum - fee;
     sendEthFromPoolInternal(recipient,_token,sum- sumForTokens - fee);
-    emit ExchangeDetails(_token,exchangeData[_token].total_tokens,exchangeData[_token].total_collateral,exchangeData[_token].collateral_parts_per_10000);
+    emit ExchangeDetails(_token,
+      exchangeData[_token].total_tokens,
+      exchangeData[_token].total_collateral,
+      exchangeData[_token].collateral_parts_per_10000,
+      getBuyPrice(_token, 10**18));
   }
 
   function sell(address _token,uint amount) external{
@@ -141,7 +168,11 @@ contract Exchange {
     exchangeData[_token].total_tokens=exchangeData[_token].total_tokens+amount;
     sendEthFromPoolInternal(msg.sender,_token,sumForTokens-fee);
     exchangeData[_token].total_collateral=exchangeData[_token].total_collateral - fee;
-    emit ExchangeDetails(_token,exchangeData[_token].total_tokens,exchangeData[_token].total_collateral,exchangeData[_token].collateral_parts_per_10000);
+    emit ExchangeDetails(_token,
+      exchangeData[_token].total_tokens,
+      exchangeData[_token].total_collateral,
+      exchangeData[_token].collateral_parts_per_10000,
+      getBuyPrice(_token, 10**18));
   }
   function getSellPrice(address _token,uint amount) public view returns(uint){
     uint price_per_10_18 = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/(exchangeData[_token].total_tokens+amount*10000/exchangeData[_token].collateral_parts_per_10000);
@@ -160,9 +191,10 @@ contract Exchange {
     return retVals;
   }
 
-  event NewToken(address tokenAdr);
-  event TokensBought(address token,uint amount,uint totalSpent);
-  event TokensSold(address token,uint amount,uint totalSpent);
-  event ExchangeDetails(address token,uint token_supply,uint collateral_supply,uint16 collateral_per_10000);
+  event NewToken(address indexed creator,address tokenAdr);
+  event TokensBought(address indexed token,uint amount,uint totalSpent);
+  event TokensSold(address indexed token,uint amount,uint totalSpent);
+  event ExchangeDetails(address indexed token,uint token_supply,uint collateral_supply,uint16 collateral_per_10000,uint buyPrice);
+  event NewExchange(address indexed token,uint token_supply,uint collateral_supply,uint16 collateral_per_10000,uint buyPrice);
   event FeesBurned(uint initial_amount,uint amount_burned,uint tokens_amount_burned);
 }
