@@ -4,8 +4,8 @@ const BaseERC20Token = artifacts.require("BaseERC20Token");
 
 module.exports = async function(deployer,network,accounts) {
   var masterTokenTotalSupply = web3.utils.toWei("1000000",'ether');
-  var masterTokenExchangeSupply = web3.utils.toWei("500",'ether');
-  var collateralForExchange = web3.utils.toWei("10",'ether');
+  var masterTokenExchangeSupply = web3.utils.toWei("4800",'ether');
+  var collateralForExchange = web3.utils.toWei("48",'ether');
   var priceOfMasterTokenInDAI = web3.utils.toWei("1",'ether');
   var amountToBuy = web3.utils.toWei("1",'ether');
   var partsPer10000Collateral = "100";

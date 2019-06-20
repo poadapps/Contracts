@@ -9,7 +9,8 @@ var contracts = new Promise((res,rej)=>{
         exchange:undefined,
         mainToken:undefined,
         web3:undefined,
-        getToken:undefined
+        getToken:undefined,
+        currentAccount:undefined,
     }
     try{
 
@@ -30,6 +31,9 @@ var contracts = new Promise((res,rej)=>{
                     abi1,
                     networkDataOfExchange.address,
                 );
+                web3.eth.getAccounts(function(e,data){
+                    cntrct.currentAccount = data[0];
+                })
 
                 cntrct.exchange.methods.exchangeCreatorToken().call().then((ard)=>{
 

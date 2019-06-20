@@ -1,3 +1,6 @@
+
+
+
 <template>
   <div class="hello">
     <button @click="makeDummyTx">
@@ -11,13 +14,17 @@
     </div>
     <div>
       <div v-for="(item, id) in tokenList" :key="id">
-       {{item.name}}
+       Name:{{item.name}}<BR/> 
+       Price:{{item.price | toDollars}}
+       <BuySell :tokAddr="item.address"/>
+       <button @click="showDetails(item.address)">Details</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import BuySell from './BuySell.vue'
 export default {
   name: 'HelloWorld',
   beforeCreate () {
@@ -29,26 +36,30 @@ export default {
     });
   },
   data () {
-    return {
-      msg: 'Welcome to Your Vue.js App',
-    }
+    return {}
   },
   methods: {
     makeDummyTx(){
-      this.$store.dispatch('sendDummyTx')
+      this.$store.dispatch('universe/sendDummyTx')
+    },
+    showDetails(address){
+      this.$router.push('/token/'+address);
     }
   },
   computed: {
     blockHeight () {
       return this.$store.state.universe.blockHeight;
-      },
+    },
     mainName () {
       return this.$store.state.universe.mainTokenName;
     },
     tokenList (){
       return this.$store.state.exchangeList.ListedTokens;
     }
-   }
+   },
+  components: {
+    BuySell
+  }
 }
 </script>
 

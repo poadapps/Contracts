@@ -1,11 +1,17 @@
 var exchangeList = function(contracts){
-      
+    var getByAddress = (that,filterAddress)=>{
+        return that.getters['exchangeList/getTokenByAddress'](filterAddress);
+    }
     return{
                 state: {
                 latestScannedBlock: 0,
-                ListedTokensCount:0,
                 ListedTokens:[],
                 ListedTokensMap:{},
+                },
+                getters:{
+                    getTokenByAddress : state => (addr)=>{
+                        return state.ListedTokens[state.ListedTokensMap[addr]];
+                    }
                 },
                 mutations: {
                     setLatestScannedBlock (state,val) {
@@ -17,29 +23,24 @@ var exchangeList = function(contracts){
                         state.ListedTokens.push(token);
                         state.ListedTokensMap[token.address]=token.id-1;
                     },
-                    updatePrice(state,addr,newPrice){
-                        state.ListedTokens[state.ListedTokensMap[addr]]=newPrice;
+                    updatePrice(state,data){
+                        if(getByAddress(this,data.addr).latestUpdate<data.blockNumber){
+                            getByAddress(this,data.addr).price=data.newPrice;
+                            getByAddress(this,data.addr).latestUpdate=data.blockNumber;
+                        }
                     }
                 },
                 actions: {
-                    getTokenNameByAddress(store,addr){
-                        return new Promise((res,rej)=>{
-                        contracts.getToken(addr).methods.name.call().then((r)=>{
-                            res(r);
-                        }).catch((err)=>{
-                            rej(err);
-                        });
-                        });
-                    },
                     getTokenListFromLocalStorage(store){
                         return new Promise((res,rej)=>{
                         try{
                             var list = JSON.parse(localStorage.getItem('tokensList'));
-                            if(list && list.tokens){
-                            for(var i=0;i<list.tokens.length;i++){
-                                store.commit('addListedToken',list.tokens[i]);
-                            }
-                            store.commit('setLatestScannedBlock',list.latestBlock);
+                            if(list && list.tokens && list.exchangeAddress == contracts.exchange.address){
+                                for(var i=0;i<list.tokens.length;i++){
+                                    store.commit('addListedToken',list.tokens[i]);
+                                    store.dispatch('updatePrices',list.tokens[i].address);
+                                }
+                                store.commit('setLatestScannedBlock',list.latestBlock);
                             }
                             res(true);
                         }catch(ex){
@@ -54,33 +55,59 @@ var exchangeList = function(contracts){
                             localStorage.setItem('tokensList', 
                             JSON.stringify({
                                 tokens:store.state.ListedTokens,
-                                latestBlock:store.state.latestScannedBlock
+                                latestBlock:store.state.latestScannedBlock,
+                                exchangeAddress:contracts.exchange.address
                             }))
                         }
                         },1000);
                     },
+                    updatePrices(store,filterAddress){
+                        var token =  getByAddress(this,filterAddress);
+                        contracts.exchange.events.ExchangeDetails({
+                            fromBlock:token.latestUpdate,
+                            toBlock: 'latest'
+                        },(err,ev)=>{
+                            if(err==false){
+                                store.commit('updatePrice',{
+                                    addr:ev.returnValues.token,
+                                    newPrice:ev.returnValues.buyPrice,
+                                    blockNumber:ev.blockNumber
+                                })
+                                console.log('NewPrice',ev);
+                            }
+                            else{
+                                console.log('Event error',ev)
+                            }
+                        })
+                    },
 
                     getTokenListFromBlockchain(store){
+
 
                         contracts.exchange.events.NewExchange({
                         fromBlock: store.state.latestScannedBlock+1,
                         toBlock: 'latest'
                         },(err,ev)=>{
-                        if(err==false){
-                            store.dispatch('getTokenNameByAddress',ev.returnValues.token).then((tName)=>{
-                            var data = {
-                                name:'Token '+tName,
-                                address:ev.returnValues.token,
-                                price:(ev.returnValues.buyPrice.toString())
-                            };
-                            store.commit('addListedToken',data)
-                            store.commit('setLatestScannedBlock',ev.blockNumber)
-                            console.log('NewExchange',ev);
-                            });
-                        }
-                        else{
-                            console.log('Event error',ev)
-                        }
+                            if(err==false){
+                                store.dispatch('tokensInfo/getTokenNameByAddress',ev.returnValues.token, {root:true}).then((data)=>{
+                                var data = {
+                                    name:'Token '+data.fullName,
+                                    abbrev:data.abbrev,
+                                    tokSupply:data.tokSupply,
+                                    address:ev.returnValues.token,
+                                    price:(ev.returnValues.buyPrice.toString()),
+                                    latestUpdate:ev.blockNumber
+                                };
+                                store.commit('addListedToken',data)
+                                store.commit('setLatestScannedBlock',ev.blockNumber)
+
+                                store.dispatch('updatePrices',ev.returnValues.token);
+                                console.log('NewExchange',ev);
+                                });
+                            }
+                            else{
+                                console.log('Event error',ev)
+                            }
                         })
                     }
 

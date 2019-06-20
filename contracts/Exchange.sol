@@ -64,6 +64,10 @@ contract Exchange is Ownable {
     createdTokens[address(p)]=true;
   }
 
+  function getTokensShare(address _token,address _owner) public view returns(uint128){
+    return userShares[keccak256(abi.encodePacked(_owner,_token))];
+  }
+
   function getLegalTokensCount() public view returns(uint256){
     return legal_tokens.length;
   }
@@ -172,8 +176,14 @@ contract Exchange is Ownable {
       exchangeData[_token].total_tokens,
       exchangeData[_token].total_collateral,
       exchangeData[_token].collateral_parts_per_10000,
-      getBuyPrice(_token, 10**18));
+      getBuyPrice(_token,0));
   }
+
+  function getBasicData(address _token) public view returns(uint price,uint totalCollateral,uint totalSupply){
+    uint price_per_10_18 = exchangeData[_token].total_collateral*(10**18)/exchangeData[_token].collateral_parts_per_10000*10000/exchangeData[_token].total_tokens;
+    return (price_per_10_18,exchangeData[_token].total_collateral,exchangeData[_token].total_tokens);
+  }
+
   function getSellPrice(address _token,uint amount) public view returns(uint){
     uint price_per_10_18 = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/(exchangeData[_token].total_tokens+amount*10000/exchangeData[_token].collateral_parts_per_10000);
     return price_per_10_18*amount/(10**18);
