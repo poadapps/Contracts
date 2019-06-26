@@ -92,11 +92,7 @@ contract Exchange is Ownable {
     legal_tokens.push(_token);
     require(IERC20(_token).transferFrom(msg.sender,address(this),_supply),'no tokens to transfer or no allowence');
 
-    emit NewExchange(_token,
-      exchangeData[_token].total_tokens,
-      exchangeData[_token].total_collateral,
-      exchangeData[_token].collateral_parts_per_10000,
-      getBuyPrice(_token, 10**18));
+    emitTokenStateUpdate(_token);
   }
 
   function addLiquidity(address _token) external payable{
@@ -109,7 +105,7 @@ contract Exchange is Ownable {
     exchangeData[_token].total_collateral = exchangeData[_token].total_collateral+msg.value;
     userShares[keccak256(abi.encodePacked(msg.sender,_token))]=uint128(userShares[keccak256(abi.encodePacked(msg.sender,_token))]+newShares);
     exchangeData[_token].total_shares = exchangeData[_token].total_shares + uint128(newShares);
-
+    emitTokenStateUpdate(_token);
   }
 
   function removeLiquidity(address _token,uint128 shares_to_redeem) external{
@@ -117,11 +113,13 @@ contract Exchange is Ownable {
     require(userShares[keccak256(abi.encodePacked(msg.sender,_token))]>=shares_to_redeem,"You do not have enaught shares");
     removeLiquidityInternal(_token,shares_to_redeem);
     userShares[keccak256(abi.encodePacked(msg.sender,_token))] = uint128(userShares[keccak256(abi.encodePacked(msg.sender,_token))] - shares_to_redeem);
+    emitTokenStateUpdate(_token);
   }
   function removeAllLiquidity(address _token) external{
     require(exchangeData[_token].collateral_parts_per_10000>0,"token does not exist");
     removeLiquidityInternal(_token,userShares[keccak256(abi.encodePacked(msg.sender,_token))]);
     userShares[keccak256(abi.encodePacked(msg.sender,_token))] = 0;
+    emitTokenStateUpdate(_token);
   }
 
   function computeReturnAmount(address _token,uint128 shares_to_redeem) public view returns(uint tokensAmount,uint daiAmount){
@@ -153,6 +151,7 @@ contract Exchange is Ownable {
 
   function buy(address _token,uint amount) public payable{
     buyInternal(_token,amount,msg.value,msg.sender);
+    emitTokenStateUpdate(_token);
   }
 
   function buyInternal(address _token,uint amount,uint sum,address payable recipient) private {
@@ -164,11 +163,6 @@ contract Exchange is Ownable {
     emit TokensBought(_token,amount,sumForTokens);
     exchangeData[_token].total_collateral=exchangeData[_token].total_collateral+sum - fee;
     sendEthFromPoolInternal(recipient,_token,sum- sumForTokens - fee);
-    emit ExchangeDetails(_token,
-      exchangeData[_token].total_tokens,
-      exchangeData[_token].total_collateral,
-      exchangeData[_token].collateral_parts_per_10000,
-      getBuyPrice(_token, 10**18));
   }
 
   function sell(address _token,uint amount) external{
@@ -180,11 +174,7 @@ contract Exchange is Ownable {
     exchangeData[_token].total_tokens=exchangeData[_token].total_tokens+amount;
     sendEthFromPoolInternal(msg.sender,_token,sumForTokens-fee);
     exchangeData[_token].total_collateral=exchangeData[_token].total_collateral - fee;
-    emit ExchangeDetails(_token,
-      exchangeData[_token].total_tokens,
-      exchangeData[_token].total_collateral,
-      exchangeData[_token].collateral_parts_per_10000,
-      getBuyPrice(_token,0));
+    emitTokenStateUpdate(_token);
   }
 
   function getBasicData(address _token) public view returns(uint price,uint totalCollateral,uint totalSupply){
@@ -207,6 +197,14 @@ contract Exchange is Ownable {
       retVals[i]=getBuyPrice(tokens[i],1);
     }
     return retVals;
+  }
+
+  function emitTokenStateUpdate(address _token) private {
+    emit ExchangeDetails(_token,
+      exchangeData[_token].total_tokens,
+      exchangeData[_token].total_collateral,
+      exchangeData[_token].collateral_parts_per_10000,
+      getBuyPrice(_token,0));
   }
 
   event NewToken(address indexed creator,address tokenAdr);
