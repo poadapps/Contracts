@@ -6,6 +6,7 @@
    <div v-if="isLoaded">
     You will get {{assignedTokensAmount}} tokens and {{assignedXDaiAmount}} xDAI back
    </div>
+       <button @click="removeLiquidity">  Withdraw Shares </button>
   </div>
 </template>
 
@@ -41,13 +42,7 @@ export default {
         sharesCount:newVal});
     }
   },
-  methods: {
-    updateTokenInfo:function(data){
-      if(data.addr===this.$route.params.address){
-        this.numberOfSharesOwnedByUser = this.fromWei(data.token.usersShare)*10000;
-        this.isLoaded = true;
-      }  
-    },
+  methods: { 
     updateTokenInfo:function(data){
       if(data.addr===this.$route.params.address){
         this.numberOfSharesOwnedByUser = this.fromWei(data.token.usersShare)*10000;
@@ -57,7 +52,11 @@ export default {
     updateShareAmounts:function(data){
       this.assignedTokensAmount = this.fromWei(data.tokensAmount);
       this.assignedXDaiAmount = this.fromWei(data.daiAmount);
-      this.$forceUpdate();
+    },
+    removeLiquidity:function(){
+      this.$store.dispatch('tokensInfo/removeLiquidity',{
+        token:this.$route.params.address,
+        sharesCount:this.amountOfSharesToRemove});
     }
   },
 }

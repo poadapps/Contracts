@@ -31,6 +31,12 @@ var exchangeList = function(contracts){
                             });
                         });
                     },
+                    removeLiquidity(store,data){
+                        var tokenAddress = data.token;
+                        var amountToRedeem = data.sharesCount+"00000000000000" /* 10**18 to 10000 jednostek */;
+                        var method = contracts.exchange.methods.removeLiquidity(tokenAddress,amountToRedeem);
+                        method.send({from:contracts.currentAccount});
+                    },
                     computedReturnedDeposit(store,data){
                         var tokenAddress = data.token;
                         var amountToRedeem = data.sharesCount+"00000000000000" /* 10**18 to 10000 jednostek */;
