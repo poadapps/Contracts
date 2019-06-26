@@ -37,6 +37,7 @@ getWeb3.then((contracts)=>{
       modules:storeContentFactory(contracts)
     });
   Vue.mixin(web3Mixin);
+  priceUpdater(store);
   /* eslint-disable no-new */
   new Vue({
     el: '#app',
@@ -56,7 +57,6 @@ getWeb3.then((contracts)=>{
     components: { App },
     template: '<App/>'
   })
-  priceUpdater(store);
 
   EventBus.$on('accountUpdate',function(){
     window.location.reload();

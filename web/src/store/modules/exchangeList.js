@@ -23,9 +23,13 @@ var exchangeList = function(contracts){
                         state.latestScannedBlock=val;
                     },
                     addListedToken(state,token){
-                        token.id = state.ListedTokens.length+1;
-                        state.ListedTokens.push(token);
-                        state.ListedTokensMap[token.address]=token.id-1;
+                        if(state.ListedTokensMap[token.address]==undefined){
+
+                            token.id = state.ListedTokens.length+1;
+                            state.ListedTokens.push(token);
+                            state.ListedTokensMap[token.address]=token.id-1;
+                            EventBus.$emit('newTokenExchange',token.address);
+                        }
                     },
                     updatePrice(state,data){
                         if(getByAddress(this,data.addr).latestUpdate<data.blockNumber){
@@ -42,7 +46,6 @@ var exchangeList = function(contracts){
                             if(list && list.tokens && list.exchangeAddress == contracts.exchange.address){
                                 for(var i=0;i<list.tokens.length;i++){
                                     store.commit('addListedToken',list.tokens[i]);
-                                    store.dispatch('updatePrices',list.tokens[i].address);
                                 }
                                 store.commit('setLatestScannedBlock',list.latestBlock);
                             }
@@ -64,24 +67,6 @@ var exchangeList = function(contracts){
                             }))
                         }
                         },1000);
-                    },
-                    updatePrices(store,filterAddress){
-                        var token =  getByAddress(this,filterAddress);
-                        contracts.exchange.events.ExchangeDetails({
-                            fromBlock:token.latestUpdate,
-                            toBlock: 'latest'
-                        },(err,ev)=>{
-                            if(err==false){
-                                store.commit('updatePrice',{
-                                    addr:ev.returnValues.token,
-                                    newPrice:ev.returnValues.buyPrice,
-                                    blockNumber:ev.blockNumber
-                                })
-                            }
-                            else{
-                                console.log('Event error',ev)
-                            }
-                        })
                     },
                     trackExchangeDetailsChange(store,trackFrom){
                         contracts.exchange.events.ExchangeDetails({
@@ -118,7 +103,6 @@ var exchangeList = function(contracts){
                                     };
                                     store.commit('addListedToken',data)
                                     store.commit('setLatestScannedBlock',ev.blockNumber)
-                                    EventBus.$emit('newTokenExchange',ev.returnValues.token);
                                 });
                             }
                             else{
