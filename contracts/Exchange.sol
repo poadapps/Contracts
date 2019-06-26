@@ -93,6 +93,11 @@ contract Exchange is Ownable {
     require(IERC20(_token).transferFrom(msg.sender,address(this),_supply),'no tokens to transfer or no allowence');
 
     emitTokenStateUpdate(_token);
+    emit NewExchange(_token,
+      exchangeData[_token].total_tokens,
+      exchangeData[_token].total_collateral,
+      exchangeData[_token].collateral_parts_per_10000,
+      getBuyPrice(_token, 10**18));
   }
 
   function addLiquidity(address _token) external payable{
@@ -200,11 +205,14 @@ contract Exchange is Ownable {
   }
 
   function emitTokenStateUpdate(address _token) private {
+
+    uint price ;
+    (price,,) = getBasicData(_token);
     emit ExchangeDetails(_token,
       exchangeData[_token].total_tokens,
       exchangeData[_token].total_collateral,
       exchangeData[_token].collateral_parts_per_10000,
-      getBuyPrice(_token,0));
+      price);
   }
 
   event NewToken(address indexed creator,address tokenAdr);
