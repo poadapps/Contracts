@@ -1,5 +1,7 @@
 
 import EventBus from '../../components/common/eventBus'
+
+
 var exchangeList = function(contracts){
     var getByAddress = (that,filterAddress)=>{
         return that.getters['exchangeList/getTokenByAddress'](filterAddress);
@@ -81,10 +83,16 @@ var exchangeList = function(contracts){
                             }
                         })
                     },
-
+                    trackExchangeDetailsChange(store,trackFrom){
+                        contracts.exchange.events.ExchangeDetails({
+                            fromBlock:trackFrom,
+                            toBlock: 'latest'
+                        },(err,ev)=>{
+                            EventBus.$emit('exchangeChanged',{token:ev.returnValues.token,details:ev});
+                            console.log('new event exchangeChanged',ev);
+                        })
+                    },
                     getTokenListFromBlockchain(store){
-
-
                         contracts.exchange.events.NewExchange({
                         fromBlock: store.state.latestScannedBlock+1,
                         toBlock: 'latest'

@@ -6,6 +6,7 @@ import Vuex from 'vuex'
 
 import App from './App'
 import router from './router'
+import priceUpdater from './businessObjects/priceUpdater'
 import storeContentFactory from './store/index'
 import getWeb3 from './utils/web3/contracts'
 import web3Op from './mixins/web3Op'
@@ -49,11 +50,13 @@ getWeb3.then((contracts)=>{
       this.$store.dispatch('exchangeList/persistTokenListInLocalStorage')
       this.$store.dispatch('exchangeList/getTokenListFromLocalStorage').then(()=>{
         this.$store.dispatch('exchangeList/getTokenListFromBlockchain')
+        this.$store.dispatch('exchangeList/trackExchangeDetailsChange',this.$store.state.exchangeList.latestScannedBlock);
       });
     },
     components: { App },
     template: '<App/>'
   })
+  priceUpdater(store);
 
   EventBus.$on('accountUpdate',function(){
     window.location.reload();

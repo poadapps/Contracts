@@ -70,7 +70,6 @@ var exchangeList = function(contracts){
                                     addr:tokenAddress,
                                     content:retVal
                                 })
-                                console.log('event catched');
                                 
                                 EventBus.$emit('shareUpdated',{
                                   addr:tokenAddress,
