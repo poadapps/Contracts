@@ -1,9 +1,11 @@
 <template>
   <div class="hello">
     <div v-if="!isLoaded">Loading.....</div>
-   Token Details of {{$route.params.address}}
+   Token Details of {{fullName}}
    <BR/>
-   Collateralization:{{collateralizationRatio}}%
+   Collateralization:{{collateralizationRatio}}
+   <BR/>
+   Total Shares:{{totalShares}}
    <BR/>
    Total Collateral:{{totalCollateralValue}}
    <BR/>
@@ -11,41 +13,71 @@
    <BR/>
    Your Token Balances:{{yourTokenBalance}}
    <BR/>
+   Your Token Exchange Share:{{userShares}}
+   <BR/>
    Current price:{{currentPrice}}
-
+   <div><RemoveCollateral :tokAddr="$route.params.address"/></div>
+   <div><AddCollateral :tokAddr="$route.params.address"/></div>
   </div>
 </template>
 
 <script>
+import RemoveCollateral from './AddCollateral.vue'
+import EventBus from './common/eventBus'
+import AddCollateral from './RemoveCollateral.vue'
+import { mapState } from 'vuex';
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      totalTokensSupply:0,
-      totalCollateralValue:0,
-      collateralizationRatio:0,
-      yourTokenBalance:0,
+      totalCollateralValue:'',
+      totalTokensSupply:'',
+      yourTokenBalance:'',
+      collateralizationRatio:'',
+      totalShares:'',
+      userShares:'',
+      currentPrice:''
     }
-  },
-  created(){
-    var that =this;
-    this.$store.dispatch('tokensInfo/getTokenExchangeInformation',this.$route.params.address).then((data)=>{
-      console.log('tok Details',data)
+
+      /*
       that.totalCollateralValue = that.fromWei(data.collateralAmount);
       that.totalTokensSupply = that.fromWei(data.tokensAmount);
       that.yourTokenBalance = that.fromWei(data.tokenBalance);
       that.collateralizationRatio = data.tokenCollateralisationRatio*1.0/100;
-      that.isLoaded = true;
-    });
+      that.totalShares = that.fromWei(data.tokenTotalShares)*10000;
+      that.userShares = that.fromWei(data.usersShare)*10000;
+      */
+  },
+  mounted(){
+    var that =this;
+    this.$store.dispatch('tokensInfo/getTokenExchangeInformation',this.$route.params.address);
+    EventBus.$on('shareUpdated',this.updateTokenInfo);
   },
   computed: {
-    currentPrice:function(){
-      return this.totalCollateralValue/this.totalTokensSupply*100/this.collateralizationRatio;
-    }
   },
   methods: {
+    updateTokenInfo:function(data){
+      if(data.addr===this.$route.params.address){
+        this.totalCollateralValue = this.fromWei(data.token.collateralAmount);
+        this.totalTokensSupply = this.fromWei(data.token.tokensAmount);
+        this.yourTokenBalance = this.fromWei(data.token.tokenBalance);
+        this.collateralizationRatio = data.token.tokenCollateralisationRatio*1.0/100;
+        this.totalShares = this.fromWei(data.token.tokenTotalShares)*10000;
+        this.userShares = this.fromWei(data.token.usersShare)*10000;
+        this.isLoaded = true;
+      }
+      
+    }
   },
-  watch:{
+  computed: {
+    fullName:function(){
+      var data = this.$store.getters['exchangeList/getTokenByAddress'](this.$route.params.address);
+      return data?data.name:'-';
+    }
+  },
+  components: {
+    RemoveCollateral,
+    AddCollateral
   }
 }
 </script>

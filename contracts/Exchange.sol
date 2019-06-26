@@ -111,6 +111,7 @@ contract Exchange is Ownable {
     exchangeData[_token].total_shares = exchangeData[_token].total_shares + uint128(newShares);
 
   }
+
   function removeLiquidity(address _token,uint128 shares_to_redeem) external{
     require(exchangeData[_token].collateral_parts_per_10000>0,"token does not exist");
     require(userShares[keccak256(abi.encodePacked(msg.sender,_token))]>=shares_to_redeem,"You do not have enaught shares");
@@ -123,10 +124,17 @@ contract Exchange is Ownable {
     userShares[keccak256(abi.encodePacked(msg.sender,_token))] = 0;
   }
 
+  function computeReturnAmount(address _token,uint128 shares_to_redeem) public view returns(uint tokensAmount,uint daiAmount){
+    tokensAmount = exchangeData[_token].total_tokens*shares_to_redeem/exchangeData[_token].total_shares;
+    daiAmount  =exchangeData[_token].total_collateral*shares_to_redeem/exchangeData[_token].total_shares;
+    return (tokensAmount,daiAmount);
+  }
+
   function removeLiquidityInternal(address _token,uint128 shares_to_redeem) private{
-    uint tokensToTransfer = exchangeData[_token].total_tokens*shares_to_redeem/exchangeData[_token].total_shares;
+    uint tokensToTransfer = 0; //exchangeData[_token].total_tokens*shares_to_redeem/exchangeData[_token].total_shares;
+    uint ethToTransfer = 0;//exchangeData[_token].total_collateral*shares_to_redeem/exchangeData[_token].total_shares;
+    (tokensToTransfer,ethToTransfer) = computeReturnAmount(_token,shares_to_redeem);
     sendTokensFromPoolInternal(msg.sender,_token,tokensToTransfer);
-    uint ethToTransfer = exchangeData[_token].total_collateral*shares_to_redeem/exchangeData[_token].total_shares;
     sendEthFromPoolInternal(msg.sender,_token,ethToTransfer);
     exchangeData[_token].total_shares = exchangeData[_token].total_shares - shares_to_redeem;
   }

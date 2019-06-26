@@ -1,3 +1,5 @@
+
+import EventBus from '../../components/common/eventBus'
 var universe = function(contracts){
       
     return{
@@ -5,6 +7,7 @@ var universe = function(contracts){
                 blockHeight: -1,
                 mainTokenName: '',
                 mainTokenSupply: '',
+                latestAddress:''
                 },
                 mutations: {
                     setBlockHeight (state,val) {
@@ -12,6 +15,9 @@ var universe = function(contracts){
                     },
                     setMainTokenName (state,val) {
                         state.mainTokenName=val;
+                    },
+                    setLatestAddress (state,val) {
+                        state.latestAddress=val;
                     }
                 },
                 actions: {
@@ -26,15 +32,15 @@ var universe = function(contracts){
                         })
 
                     },
-                    sendDummyTx(store){
-                        contracts.web3.eth.sendTransaction(
-                            {
-                                value:0,
-                                to:contracts.currentAccount,
-                                from:contracts.currentAccount
-                            },()=>{
-                        store.dispatch('readBlockchain');
-                        })
+                    detectAddressUpdate(store){
+                        setInterval(()=>{
+                            contracts.web3.eth.getAccounts().then((r)=>{
+                                if(store.state.latestAddress.toLowerCase()!==r[0].toLowerCase()){
+                                    EventBus.$emit('accountUpdate',store.state.latestAddress);
+                                }
+                            });
+                        },200)
+
                     }
 
                 }

@@ -25,6 +25,14 @@ var buySell = function(contracts){
                     sellTokens(store,data){
                         var address = data.addr;
                         var amount = data.amount;
+                        return new Promise((res,rej)=>{
+                            store.dispatch('getSellPrice',data).then((price)=>{
+                                var total = price;
+                                var method = contracts.exchange.methods.sell(address,amount);
+                                method.send({from:contracts.currentAccount});
+                                res(true);
+                            });
+                        })
                     }
                 }
             }

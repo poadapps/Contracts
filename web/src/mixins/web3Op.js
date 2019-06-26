@@ -17,7 +17,8 @@ const myMixin = function(web3){
             },
             fromWei(value){
                 try{
-                    return web3.utils.fromWei(value,'ether');
+                    var value =  web3.utils.fromWei(value,'ether');
+                    return value;
                 }catch(ex){
                     return 0;
                 }

@@ -1,3 +1,5 @@
+
+import EventBus from '../../components/common/eventBus'
 var exchangeList = function(contracts){
     var getByAddress = (that,filterAddress)=>{
         return that.getters['exchangeList/getTokenByAddress'](filterAddress);
@@ -25,7 +27,7 @@ var exchangeList = function(contracts){
                     },
                     updatePrice(state,data){
                         if(getByAddress(this,data.addr).latestUpdate<data.blockNumber){
-                            getByAddress(this,data.addr).price=data.newPrice;
+                            getByAddress(this,data.addr).price=data.newPrice.toString();
                             getByAddress(this,data.addr).latestUpdate=data.blockNumber;
                         }
                     }
@@ -73,7 +75,6 @@ var exchangeList = function(contracts){
                                     newPrice:ev.returnValues.buyPrice,
                                     blockNumber:ev.blockNumber
                                 })
-                                console.log('NewPrice',ev);
                             }
                             else{
                                 console.log('Event error',ev)
@@ -90,19 +91,18 @@ var exchangeList = function(contracts){
                         },(err,ev)=>{
                             if(err==false){
                                 store.dispatch('tokensInfo/getTokenNameByAddress',ev.returnValues.token, {root:true}).then((data)=>{
-                                var data = {
-                                    name:'Token '+data.fullName,
-                                    abbrev:data.abbrev,
-                                    tokSupply:data.tokSupply,
-                                    address:ev.returnValues.token,
-                                    price:(ev.returnValues.buyPrice.toString()),
-                                    latestUpdate:ev.blockNumber
-                                };
-                                store.commit('addListedToken',data)
-                                store.commit('setLatestScannedBlock',ev.blockNumber)
+                                    var data = {
+                                        name:'Token '+data.fullName,
+                                        abbrev:data.abbrev,
+                                        tokSupply:data.tokSupply,
+                                        address:ev.returnValues.token,
+                                        price:ev.returnValues.buyPrice.toString(),
+                                        latestUpdate:ev.blockNumber
+                                    };
+                                    store.commit('addListedToken',data)
+                                    store.commit('setLatestScannedBlock',ev.blockNumber)
 
-                                store.dispatch('updatePrices',ev.returnValues.token);
-                                console.log('NewExchange',ev);
+                                    store.dispatch('updatePrices',ev.returnValues.token);
                                 });
                             }
                             else{

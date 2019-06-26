@@ -2,6 +2,7 @@ import getWeb3 from './getWeb3'
 import * as exchange from "../../../../build/contracts/Exchange.json";
 import * as erc20 from "../../../../build/contracts/BaseERC20Token.json";
 import { get } from 'http';
+import EventBus from '../../components/common/eventBus'
 
 
 var contracts = new Promise((res,rej)=>{

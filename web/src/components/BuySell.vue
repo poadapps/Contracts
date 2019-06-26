@@ -1,15 +1,16 @@
 <template>
-  <div class="hello">
+  <div class="hello" >
+   <div  v-if="tokAddr && tokAddr.length>0" class="never_collapsed">
     <div v-if="!isLoaded">Loading....</div>
-    <button @click="buyTokens">
-    Buy
-    </button>
-    <button @click="sellTokens">
-    Sell
-    </button>
+    {{token.abbrev}}
+
+    
     Amount: <input v-model="amountToBuy"/>
-    PriceToBuy: {{priceToBuy|toDollars}}
-    PriceToSell: {{priceToSell|toDollars}}
+       <button @click="buyTokens">  Buy for {{priceToBuy|toDollars}} xDai </button>
+    <button @click="sellTokens"> Sell for {{priceToSell|toDollars}} xDai  </button>
+   </div>
+   <div  v-if="tokAddr && tokAddr.length>0 == false" class="never_collapsed">
+   </div>
   </div>
 </template>
 
@@ -19,8 +20,9 @@ export default {
   data () {
     return {
       amountToBuy:0,
-      priceToBuy:0,
-      priceToSell:0,
+      priceToBuy:'-',
+      priceToSell:'-',
+      token:{},
       isComputing:false
     }
   },
@@ -44,16 +46,27 @@ export default {
       });
     }
   },
+  computed: {
+    tokAndSum:function(){
+      return this.tokAddr+this.amountToBuy;
+    }
+  },
   watch:{
-    amountToBuy:function(newVal,oldVal){
+    tokAddr:function(newOne,oldOne){
+      console.log('addr change',newOne,oldOne);
+      var tokDetails = this.$store.getters['exchangeList/getTokenByAddress'](newOne);
+      this.token = tokDetails;
+      
+    },
+    tokAndSum:function(newVal,oldVal){
       this.isLoaded=false;
       var getBuy = this.$store.dispatch('buySell/getBuyPrice',{
         addr:this.tokAddr,
-        amount:this.toWei(newVal)
+        amount:this.toWei(this.amountToBuy)
       });
       var getSell = this.$store.dispatch('buySell/getSellPrice',{
         addr:this.tokAddr,
-        amount:this.toWei(newVal)
+        amount:this.toWei(this.amountToBuy)
       });
       Promise.all([getBuy,getSell]).then((ret)=>{
         this.priceToBuy = ret[0].toString();
@@ -82,5 +95,8 @@ li {
 }
 a {
   color: #42b983;
+}
+.never_collapsed{
+  min-height:3em
 }
 </style>

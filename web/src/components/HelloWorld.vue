@@ -3,9 +3,6 @@
 
 <template>
   <div class="hello">
-    <button @click="makeDummyTx">
-    Do dumb tx
-    </button>
     <div>
     Current BlockHeight : {{blockHeight}}
     </div>
@@ -13,10 +10,10 @@
     Main Token Name : {{mainName}}
     </div>
     <div>
-      <div v-for="(item, id) in tokenList" :key="id">
+      <BuySell :tokAddr="selectedAddress"/>
+      <div v-for="(item, id) in tokenList" :key="id" @click="selectedAddress = item.address">
        Name:{{item.name}}<BR/> 
        Price:{{item.price | toDollars}}
-       <BuySell :tokAddr="item.address"/>
        <button @click="showDetails(item.address)">Details</button>
       </div>
     </div>
@@ -27,21 +24,12 @@
 import BuySell from './BuySell.vue'
 export default {
   name: 'HelloWorld',
-  beforeCreate () {
-    this.$store.dispatch('universe/readBlockchain')
-    this.$store.dispatch('universe/getMainTokenName')
-    this.$store.dispatch('exchangeList/persistTokenListInLocalStorage')
-    this.$store.dispatch('exchangeList/getTokenListFromLocalStorage').then(()=>{
-      this.$store.dispatch('exchangeList/getTokenListFromBlockchain')
-    });
-  },
   data () {
-    return {}
+    return {
+      selectedAddress:''
+    }
   },
   methods: {
-    makeDummyTx(){
-      this.$store.dispatch('universe/sendDummyTx')
-    },
     showDetails(address){
       this.$router.push('/token/'+address);
     }

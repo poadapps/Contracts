@@ -10,6 +10,7 @@ import storeContentFactory from './store/index'
 import getWeb3 from './utils/web3/contracts'
 import web3Op from './mixins/web3Op'
 import { type } from 'os';
+import EventBus from './components/common/eventBus'
 
 Vue.use(Vuex)
 
@@ -41,10 +42,22 @@ getWeb3.then((contracts)=>{
     router,
     store,
     mounted() {
+      this.$store.dispatch('universe/readBlockchain')
+      this.$store.dispatch('universe/getMainTokenName')
+      this.$store.commit('universe/setLatestAddress',contracts.currentAccount)
+      this.$store.dispatch('universe/detectAddressUpdate')
+      this.$store.dispatch('exchangeList/persistTokenListInLocalStorage')
+      this.$store.dispatch('exchangeList/getTokenListFromLocalStorage').then(()=>{
+        this.$store.dispatch('exchangeList/getTokenListFromBlockchain')
+      });
     },
     components: { App },
     template: '<App/>'
   })
+
+  EventBus.$on('accountUpdate',function(){
+    window.location.reload();
+  });
 
   
 })

@@ -1,16 +1,26 @@
+
+import EventBus from '../../components/common/eventBus'
 var exchangeList = function(contracts){
       
     return{
                 state: {
+                    tokensShares:{}
+                },
+                getters:{
+                    getShares : state => (addr)=>{
+                        return state.tokensShares[addr];
+                    }
                 },
                 mutations: {
+                    addShare(state,p){
+                        state.tokensShares[p.addr]=p.content;
+                    }
                 },
                 actions: {
                     getTokenNameByAddress(store,addr){
                         return new Promise((res,rej)=>{
                         contracts.getToken(addr).methods.getBasicData.call()
                         .then((r)=>{
-                            console.log('get token getBasicData',r);
                             res(
                                 {   fullName:r.fullName,
                                     abbrev:r.abbrev,
@@ -19,6 +29,18 @@ var exchangeList = function(contracts){
                             }).catch((err)=>{
                                 rej(err);
                             });
+                        });
+                    },
+                    computedReturnedDeposit(store,data){
+                        var tokenAddress = data.token;
+                        var amountToRedeem = data.sharesCount+"00000000000000" /* 10**18 to 10000 jednostek */;
+                        var sharesInfo = contracts.exchange.methods.computeReturnAmount(tokenAddress,amountToRedeem).call().then((data)=>{
+                            EventBus.$emit('shareAmountsComputed',
+                            {
+                                tokensAmount : data.tokensAmount.toString(),
+                                daiAmount : data.daiAmount.toString()
+                            });
+                            console.log('shares',data);
                         });
                     },
                     getTokenExchangeInformation(store,tokenAddress){
@@ -38,6 +60,16 @@ var exchangeList = function(contracts){
                                     tokensAmount:r[1].total_tokens.toString(),
                                     usersShare:r[2].toString()
                                 };
+                                store.commit('addShare',{
+                                    addr:tokenAddress,
+                                    content:retVal
+                                })
+                                console.log('event catched');
+                                
+                                EventBus.$emit('shareUpdated',{
+                                  addr:tokenAddress,
+                                  token:retVal
+                                });
                                 res(retVal);
 
                             }).catch((ex)=>{
