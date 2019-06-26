@@ -85,16 +85,25 @@ var exchangeList = function(contracts){
                     },
                     trackExchangeDetailsChange(store,trackFrom){
                         contracts.exchange.events.ExchangeDetails({
-                            fromBlock:trackFrom,
+                            fromBlock:store.state.latestScannedBlock+1,
                             toBlock: 'latest'
                         },(err,ev)=>{
-                            EventBus.$emit('exchangeChanged',{token:ev.returnValues.token,details:ev});
+                            if(getByAddress(this,ev.returnValues.token)){
+                                EventBus.$emit('exchangeChanged',{token:ev.returnValues.token,details:ev});
+                            }
+                            else{
+                                EventBus.$on('newTokenExchange',function(addr){
+                                    if(addr === ev.returnValues.token){
+                                        EventBus.$emit('exchangeChanged',{token:ev.returnValues.token,details:ev});
+                                    }
+                                })
+                            }
                             console.log('new event exchangeChanged',ev);
                         })
                     },
                     getTokenListFromBlockchain(store){
                         contracts.exchange.events.NewExchange({
-                        fromBlock: store.state.latestScannedBlock+1,
+                        fromBlock: 0,
                         toBlock: 'latest'
                         },(err,ev)=>{
                             if(err==false){
@@ -109,8 +118,7 @@ var exchangeList = function(contracts){
                                     };
                                     store.commit('addListedToken',data)
                                     store.commit('setLatestScannedBlock',ev.blockNumber)
-
-                                    store.dispatch('updatePrices',ev.returnValues.token);
+                                    EventBus.$emit('newTokenExchange',ev.returnValues.token);
                                 });
                             }
                             else{
