@@ -53,10 +53,10 @@ export default {
   methods: {
     createToken:function(data){
       console.log('tokenCreated');
-      this.$store.dispatch('exchangeList/createToken',{
+      this.$store.dispatch('tokensOperations/createToken',{
         name:this.tokenName,
         symbol:this.tokenSymbol,
-        supply:this.tokenSupply
+        supply:this.toWei(this.tokenSupply)
       });
       
     }
