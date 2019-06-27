@@ -102,14 +102,16 @@ contract Exchange is Ownable {
 
   function addLiquidity(address _token) external payable{
     require(exchangeData[_token].collateral_parts_per_10000>0,"token does not exist");
-    uint currentPriceFor18 = exchangeData[_token].total_collateral/exchangeData[_token].collateral_parts_per_10000*10000*(10**18)/exchangeData[_token].total_tokens;
-    uint expectedAmount = msg.value*(10**18)/currentPriceFor18;
-    require(IERC20(_token).transferFrom(msg.sender,address(this),expectedAmount),'no tokens to transfer or no allowence');
-    uint newShares = expectedAmount*exchangeData[_token].total_shares/exchangeData[_token].total_tokens;
-    exchangeData[_token].total_tokens = exchangeData[_token].total_tokens+expectedAmount;
-    exchangeData[_token].total_collateral = exchangeData[_token].total_collateral+msg.value;
-    userShares[keccak256(abi.encodePacked(msg.sender,_token))]=uint128(userShares[keccak256(abi.encodePacked(msg.sender,_token))]+newShares);
-    exchangeData[_token].total_shares = exchangeData[_token].total_shares + uint128(newShares);
+    uint128 amountOfShares = computeAmountOfShares(_token,msg.value);
+    uint amountOfXDAI ;
+    uint amountOfTokens ;
+    (amountOfTokens,amountOfXDAI) = computeReturnAmount(_token,amountOfShares);
+    require(msg.value>=amountOfXDAI,"deposit amount computation incorrect");
+    require(IERC20(_token).transferFrom(msg.sender,address(this),amountOfTokens),'no tokens to transfer or no allowence');
+    exchangeData[_token].total_tokens = exchangeData[_token].total_tokens+amountOfTokens;
+    exchangeData[_token].total_collateral = exchangeData[_token].total_collateral+amountOfXDAI;
+    userShares[keccak256(abi.encodePacked(msg.sender,_token))]=uint128(userShares[keccak256(abi.encodePacked(msg.sender,_token))]+amountOfShares);
+    exchangeData[_token].total_shares = exchangeData[_token].total_shares + uint128(amountOfShares);
     emitTokenStateUpdate(_token);
   }
 
@@ -127,9 +129,14 @@ contract Exchange is Ownable {
     emitTokenStateUpdate(_token);
   }
 
-  function computeReturnAmount(address _token,uint128 shares_to_redeem) public view returns(uint tokensAmount,uint daiAmount){
-    tokensAmount = exchangeData[_token].total_tokens*shares_to_redeem/exchangeData[_token].total_shares;
-    daiAmount  =exchangeData[_token].total_collateral*shares_to_redeem/exchangeData[_token].total_shares;
+  function computeAmountOfShares(address _token,uint value) public view returns(uint128 sharesCount){
+    sharesCount = uint128(exchangeData[_token].total_shares*value/exchangeData[_token].total_collateral);
+    return sharesCount;
+  }
+
+  function computeReturnAmount(address _token,uint128 sharesCount) public view returns(uint tokensAmount,uint daiAmount){
+    tokensAmount = exchangeData[_token].total_tokens*sharesCount/exchangeData[_token].total_shares;
+    daiAmount  =exchangeData[_token].total_collateral*sharesCount/exchangeData[_token].total_shares;
     return (tokensAmount,daiAmount);
   }
 

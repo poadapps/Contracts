@@ -16,15 +16,13 @@
    Your Token Exchange Share:{{userShares}}
    <BR/>
    Current price:{{currentPrice}}
-   <div><RemoveCollateral :tokAddr="$route.params.address"/></div>
-   <div><AddCollateral :tokAddr="$route.params.address"/></div>
+   <div><ChangeCollateral :tokAddr="$route.params.address"/></div>
   </div>
 </template>
 
 <script>
-import RemoveCollateral from './AddCollateral.vue'
+import ChangeCollateral from './ChangeCollateral.vue'
 import EventBus from './common/eventBus'
-import AddCollateral from './RemoveCollateral.vue'
 import { mapState } from 'vuex';
 export default {
   name: 'HelloWorld',
@@ -76,8 +74,7 @@ export default {
     }
   },
   components: {
-    RemoveCollateral,
-    AddCollateral
+    ChangeCollateral
   }
 }
 </script>

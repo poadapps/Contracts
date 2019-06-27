@@ -2,11 +2,12 @@
   <div class="hello">
    Component To Remove Collateral of {{fullName}}
    <div>You have {{numberOfSharesOwnedByUser}} Shares. </div>
-   <div>Specify amount to remove <input v-model="amountOfSharesToRemove"/> </div>
+   <div> <input v-model="amountOfSharesToRemove"/> Shares</div>
    <div v-if="isLoaded">
-    You will get {{assignedTokensAmount}} tokens and {{assignedXDaiAmount}} xDAI back
+    represents {{assignedTokensAmount}} tokens and {{assignedXDaiAmount}} xDAI 
    </div>
        <button @click="removeLiquidity">  Withdraw Shares </button>
+       <button @click="addLiquidity">  Buy Shares </button>
   </div>
 </template>
 
@@ -57,6 +58,11 @@ export default {
       this.$store.dispatch('tokensInfo/removeLiquidity',{
         token:this.$route.params.address,
         sharesCount:this.amountOfSharesToRemove});
+    },
+    addLiquidity:function(){
+      this.$store.dispatch('tokensInfo/addLiquidity',{
+        token:this.$route.params.address,
+        xDaiToPay:this.toWei(this.assignedXDaiAmount)});
     }
   },
 }
