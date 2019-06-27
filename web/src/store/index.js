@@ -16,6 +16,7 @@ import tokensOperationsFactory from './modules/tokenOperations'
     exchangeListData.namespaced = true;
     tokensData.namespaced = true;
     buySellData.namespaced = true;
+    tokensOperations.namespaced = true;
     return{
             universe:univData,
             exchangeList:exchangeListData,

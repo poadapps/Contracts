@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-   Create Token
+  <div><BackToHome></BackToHome></div>
    <div>
     <div>
     Name:<input v-model="tokenName"/> 
@@ -9,10 +9,17 @@
     Symbol:<input v-model="tokenSymbol"/> 
     </div>
     <div>
-    Total Supply:<input v-model="tokenSupply1"/> 
+    Total Supply:<input v-model="tokenSupply"/> 
     </div>
     <div>
     Decimals:18
+    </div>
+    <div v-if="isLoading">creating token...............</div>
+    <div>
+      Your tokens:
+      <div v-for="(item,id) in existingTokens()" :key="id">
+       Address:{{item.token}}<BR/> <span v-if="item.isOnExchange==false" @click="putOnExchange(item.token)">Dodaj </span>
+      </div>
     </div>
 
   <div>
@@ -23,44 +30,69 @@
 </template>
 
 <script>
+import BackToHome from './BackToHome.vue'
 import ChangeCollateral from './ChangeCollateral.vue'
 import EventBus from './common/eventBus'
 import { mapState } from 'vuex';
 export default {
-  name: 'HelloWorld',
+  name: 'CreateToken',
   data () {
     return {
       tokenName:'',
       tokenSymbol:'',
-      tokenSupply:''
+      tokenSupply:'',
+      tokenAddress:'',
+      isLoading:false
     }
-
-      /*
-      that.totalCollateralValue = that.fromWei(data.collateralAmount);
-      that.totalTokensSupply = that.fromWei(data.tokensAmount);
-      that.yourTokenBalance = that.fromWei(data.tokenBalance);
-      that.collateralizationRatio = data.tokenCollateralisationRatio*1.0/100;
-      that.totalShares = that.fromWei(data.tokenTotalShares)*10000;
-      that.userShares = that.fromWei(data.usersShare)*10000;
-      */
   },
   mounted(){
     var that =this;
-    EventBus.$on('newToken',this.updateToken);
+    EventBus.$on('newToken',this.tokenCreated);
+     EventBus.$on('newTokenExchange',this.updateTokenStatus);
   },
   computed: {
   },
   methods: {
+
+    existingTokens:function(){
+      var that = this;
+      var retVal = this.$store.state.tokensOperations.tokensCreated.map((x,index)=>{
+
+        var tokenData = {id:index+1,token:x.token,isOnExchange:false};
+        var isOnExchange = that.$store.state.exchangeList.ListedTokensMap[x.token];
+        tokenData.isOnExchange = isOnExchange!==undefined?true:false;
+        return tokenData;
+        
+      })
+      return retVal;
+    },
+    putOnExchange:function(addr){ 
+      this.$router.push({ name: 'PublishOnExchange', params: { address: addr } });
+    },
     createToken:function(data){
-      console.log('tokenCreated');
       this.$store.dispatch('tokensOperations/createToken',{
         name:this.tokenName,
         symbol:this.tokenSymbol,
         supply:this.toWei(this.tokenSupply)
       });
-      
+      this.isLoading=true;
+    },
+    updateTokenStatus:function(addr){
+      this.$forceUpdate();
+    },
+    tokenCreated:function(data){
+      var that = this;
+      if(data.creator.toLowerCase()===this.$store.state.universe.latestAddress){
+        this.isLoading=false;
+        this.$store.dispatch('getTokenNameByAddress',data.token).then((retVal)=>{
+          that.tokenName = retVal.fullName;
+        });
+      }
     }
   },
+  components: {
+    BackToHome
+  }
 }
 </script>
 

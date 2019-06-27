@@ -53,7 +53,6 @@ var exchangeList = function(contracts){
                                 tokensAmount : data.tokensAmount.toString(),
                                 daiAmount : data.daiAmount.toString()
                             });
-                            console.log('shares',data);
                         });
                     },
                     getTokenExchangeInformation(store,tokenAddress){
@@ -62,7 +61,7 @@ var exchangeList = function(contracts){
                         var userExchangeDetails = contracts.exchange.methods.getTokensShare(tokenAddress,contracts.currentAccount).call();
                         Promise.all([balanceInfo,exchangeDetails,userExchangeDetails]).then((r,e)=>{
                             if(e){
-                                rej(e);
+                                return;
                             }
                             var retVal = {
                                 tokenBalance:r[0].toString(),
@@ -81,10 +80,8 @@ var exchangeList = function(contracts){
                                 addr:tokenAddress,
                                 token:retVal
                             });
-                                res(retVal);
-
                             }).catch((ex)=>{
-                                rej(ex);
+                                console.error(ex);
                             });
                         }
                     }

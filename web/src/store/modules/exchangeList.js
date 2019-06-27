@@ -83,7 +83,6 @@ var exchangeList = function(contracts){
                                     }
                                 })
                             }
-                            console.log('new event exchangeChanged',ev);
                         })
                     },
                     getTokenListFromBlockchain(store){
@@ -106,7 +105,7 @@ var exchangeList = function(contracts){
                                 });
                             }
                             else{
-                                console.log('Event error',ev)
+                                console.log('Event error',err)
                             }
                         })
                     }

@@ -14,7 +14,7 @@
 <script>
 import EventBus from './common/eventBus'
 export default {
-  name: 'HelloWorld',
+  name: 'ChangeCollateral',
   data () {
     return {
       amountOfSharesToRemove:0,

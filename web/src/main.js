@@ -48,6 +48,7 @@ getWeb3.then((contracts)=>{
       this.$store.dispatch('universe/getMainTokenName')
       this.$store.commit('universe/setLatestAddress',contracts.currentAccount)
       this.$store.dispatch('universe/detectAddressUpdate')
+      this.$store.dispatch('tokensOperations/registerNewTokenListener')
       this.$store.dispatch('exchangeList/persistTokenListInLocalStorage')
       this.$store.dispatch('exchangeList/getTokenListFromLocalStorage').then(()=>{
         this.$store.dispatch('exchangeList/getTokenListFromBlockchain')

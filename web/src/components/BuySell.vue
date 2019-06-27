@@ -16,7 +16,7 @@
 
 <script>
 export default {
-  name: 'HelloWorld',
+  name: 'BuySell',
   data () {
     return {
       amountToBuy:0,

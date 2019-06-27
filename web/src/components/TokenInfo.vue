@@ -1,5 +1,7 @@
 <template>
   <div class="hello">
+
+  <div><BackToHome></BackToHome></div>
     <div v-if="!isLoaded">Loading.....</div>
    Token Details of {{fullName}}
    <BR/>
@@ -22,6 +24,7 @@
 
 <script>
 import ChangeCollateral from './ChangeCollateral.vue'
+import BackToHome from './BackToHome.vue'
 import EventBus from './common/eventBus'
 import { mapState } from 'vuex';
 export default {
@@ -74,7 +77,7 @@ export default {
     }
   },
   components: {
-    ChangeCollateral
+    ChangeCollateral,BackToHome
   }
 }
 </script>

@@ -9,6 +9,7 @@ const myMixin = function(web3){
         methods: {
             toWei(value) {
                 try{
+                    value = value.toString();
                     var retVal = web3.utils.toWei(value,'ether');
                     return retVal;
                 }catch(ex){
@@ -17,6 +18,7 @@ const myMixin = function(web3){
             },
             fromWei(value){
                 try{
+                    value = value.toString();
                     var value =  web3.utils.fromWei(value,'ether');
                     return value;
                 }catch(ex){
