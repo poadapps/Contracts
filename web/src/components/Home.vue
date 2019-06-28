@@ -9,11 +9,39 @@
     <div>
     Main Token Name : {{mainName}}
     </div>
+
+    <el-table
+      :data="tokenList"
+      style="width: 100%">
+
+      <el-table-column
+        align="right">
+        <template slot="header" slot-scope="scope">
+          <BuySell :tokAddr="selectedAddress"/>
+        </template>
+          <el-table-column
+            label="Symbol"
+            prop="abbrev">
+          </el-table-column>
+          <el-table-column
+            label="Name"
+            prop="name">
+          </el-table-column>
+          <el-table-column
+            label="Total Supply"
+            prop="tokSupply">
+          </el-table-column>
+          <el-table-column
+            label="Price"
+            prop="price">
+          </el-table-column>
+      </el-table-column>
+    </el-table>
+
     <div>
-      <BuySell :tokAddr="selectedAddress"/>
       <div v-for="(item, id) in tokenList" :key="id" @click="selectedAddress = item.address">
        Name:{{item.name}}<BR/> 
-       Price:{{item.price | toDollars}}
+       Price:{{item.price }}
        <button @click="showDetails(item.address)">Details</button>
       </div>
     </div>
@@ -42,7 +70,18 @@ export default {
       return this.$store.state.universe.mainTokenName;
     },
     tokenList (){
-      return this.$store.state.exchangeList.ListedTokens;
+      var that = this;
+      return this.$store.state.exchangeList.ListedTokens.map((x)=>{
+        var retVal = {
+          name:x.name,
+          abbrev:x.abbrev,
+          price:that.cutDigits(that.fromWei(x.price),3),
+          tokSupply:that.fromWei(x.tokSupply),
+          address:x.address
+        };
+        console.log(x,retVal);
+        return retVal;
+      });
     }
    },
   components: {

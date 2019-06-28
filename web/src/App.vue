@@ -1,12 +1,20 @@
 <template>
   <div id="app">
-    <router-view/>
+  <el-container>
+  <el-header><Menu></Menu></el-header>
+  <el-main><router-view/></el-main>
+</el-container>
+    
   </div>
 </template>
 
 <script>
+import Menu from './components/Menu.vue'
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+    Menu
+  }
 }
 </script>
 
