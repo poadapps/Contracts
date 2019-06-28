@@ -71,8 +71,9 @@ export default {
     },
     tokenList (){
       var that = this;
-      return this.$store.state.exchangeList.ListedTokens.map((x)=>{
+      var list = this.$store.state.exchangeList.ListedTokens.map((x,index)=>{
         var retVal = {
+          id:index,
           name:x.name,
           abbrev:x.abbrev,
           price:that.cutDigits(that.fromWei(x.price),3),
@@ -82,6 +83,8 @@ export default {
         console.log(x,retVal);
         return retVal;
       });
+      that.selectedAddress = list[0].address;
+      return list;
     }
    },
   components: {
