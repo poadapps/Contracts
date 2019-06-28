@@ -14,23 +14,23 @@
         <template slot="header" slot-scope="scope">
           <BuySell :tokAddr="selectedAddress"/>
         </template>
-          <el-table-column
+          <el-table-column min-width=15
             label="Symbol"
-            prop="abbrev">
+            prop="abbrev" >
           </el-table-column>
           <el-table-column
             label="Name"
             prop="name">
           </el-table-column>
-          <el-table-column
+          <el-table-column  min-width=30
             label="Total Supply"
             prop="tokSupply">
           </el-table-column>
-          <el-table-column
+          <el-table-column min-width=30
             label="Price"
             prop="price">
           </el-table-column>
-          <el-table-column
+          <el-table-column  min-width=15
             label="Operations">
             <template slot-scope="scope">
               <el-button

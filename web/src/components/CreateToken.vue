@@ -20,6 +20,24 @@
   </el-form-item>
 </el-form>
 
+    <el-table
+      :data="existingTokens()"
+      highlight-current-row
+      style="width: 100%">
+          <el-table-column
+            label="Token Address"
+            prop="token">
+          </el-table-column>
+          
+          <el-table-column
+            label="Operations">
+            <template slot-scope="scope">
+              <el-button v-if="scope.row.isOnExchange===false"
+                size="mini"
+                @click="putOnExchange(scope.row.token)" type="success">Publish on Exchange</el-button>
+            </template>
+          </el-table-column>
+    </el-table>
 </span>
 
 
@@ -52,8 +70,6 @@ export default {
     EventBus.$on('newToken',this.tokenCreated);
     EventBus.$on('tokenCancelled',this.tokenCancelled);
      EventBus.$on('newTokenExchange',this.updateTokenStatus);
-  },
-  computed: {
   },
   methods: {
 

@@ -4,13 +4,13 @@
       <el-form-item :label="token.abbrev">
       </el-form-item>
       <el-form-item label="Amount">
-        <el-input v-model="amountToBuy" placeholder="amount to buy ex. 12.34"  :disabled="(tokAddr && tokAddr.length>0)==false"></el-input>
+        <el-input v-model="amountToBuy" placeholder="amount to buy ex. 12.34"  :disabled="(token.abbrev && token.abbrev.length>0)===false"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="buyTokens"> Buy for {{priceToBuy|toDollars}} xDai</el-button>
+        <el-button v-loading="isLoaded===false" :disabled="!(amountToBuy>0)" type="primary" @click="buyTokens"> Buy for {{priceToBuy|toDollars}} xDai</el-button>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="sellTokens"> Sell for {{priceToSell|toDollars}} xDai </el-button>
+        <el-button v-loading="isLoaded===false"  :disabled="!(amountToBuy>0)" type="primary" @click="sellTokens"> Sell for {{priceToSell|toDollars}} xDai </el-button>
       </el-form-item>
     </el-form>
   </span>
@@ -25,10 +25,10 @@ export default {
       priceToBuy:'-',
       priceToSell:'-',
       token:{},
-      isComputing:false
+      isLoaded:false
     }
   },
-  created(){
+  mounted(){
     this.isLoaded = true;
   },
   props:['tokAddr'],

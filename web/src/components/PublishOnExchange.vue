@@ -14,10 +14,8 @@
     <div>
     Required xDAI collateral:{{collateralAmount}}
     </div>
-    <div v-if="isLoading">creating token...............</div>
-
   <div>
-    <button @click="putOnExchange"> Publish {{fullName}}</button>
+    <button v-loading="isLoading" @click="putOnExchange"> Publish {{fullName}}</button>
   </div>
    </div>
   </div>
