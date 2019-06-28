@@ -39,15 +39,6 @@ export default {
       userShares:'',
       currentPrice:''
     }
-
-      /*
-      that.totalCollateralValue = that.fromWei(data.collateralAmount);
-      that.totalTokensSupply = that.fromWei(data.tokensAmount);
-      that.yourTokenBalance = that.fromWei(data.tokenBalance);
-      that.collateralizationRatio = data.tokenCollateralisationRatio*1.0/100;
-      that.totalShares = that.fromWei(data.tokenTotalShares)*10000;
-      that.userShares = that.fromWei(data.usersShare)*10000;
-      */
   },
   mounted(){
     var that =this;

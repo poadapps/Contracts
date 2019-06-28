@@ -3,15 +3,10 @@
 
 <template>
   <div class="hello">
-    <div>
-    Current BlockHeight : {{blockHeight}}
-    </div>
-    <div>
-    Main Token Name : {{mainName}}
-    </div>
-
     <el-table
       :data="tokenList"
+      highlight-current-row
+      @current-change="handleCurrentChange"
       style="width: 100%">
 
       <el-table-column
@@ -35,16 +30,18 @@
             label="Price"
             prop="price">
           </el-table-column>
-      </el-table-column>
+          <el-table-column
+            label="Operations">
+            <template slot-scope="scope">
+              <el-button
+                size="mini"
+                type="info"
+                @click="showDetails(scope)">Details</el-button>
+            </template>
+          </el-table-column>
+        </el-table-column>
     </el-table>
 
-    <div>
-      <div v-for="(item, id) in tokenList" :key="id" @click="selectedAddress = item.address">
-       Name:{{item.name}}<BR/> 
-       Price:{{item.price }}
-       <button @click="showDetails(item.address)">Details</button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -58,8 +55,11 @@ export default {
     }
   },
   methods: {
-    showDetails(address){
-      this.$router.push('/token/'+address);
+    handleCurrentChange(record){
+      this.selectedAddress = record.address;
+    },
+    showDetails(record){
+      this.$router.push('/token/'+record.row.address);
     }
   },
   computed: {
@@ -83,7 +83,9 @@ export default {
         console.log(x,retVal);
         return retVal;
       });
-      that.selectedAddress = list[0].address;
+      if(list && list.length>0){
+        that.selectedAddress = list[0].address;
+      }
       return list;
     }
    },

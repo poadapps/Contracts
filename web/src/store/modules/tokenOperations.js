@@ -5,13 +5,17 @@ var tokensOperations = function(contracts){
     return{
                 state: {
                     tokensCreated:[],
+                    tokenIndexes:{},
                     latestScannedBlock:0
                 },
                 getters:{
                 },
                 mutations: {
                     addToken:function(state,data){
-                        state.tokensCreated.push(data);
+                        if(data.token && state.tokenIndexes[data.token]===undefined && state.tokensCreated[state.tokenIndexes[data.token]]===undefined){
+                            state.tokenIndexes[data.token] = state.tokensCreated.length;
+                            state.tokensCreated.push(data);
+                        }
                     },
                     updateBlock:function(state,data){
                         state.latestScannedBlock = data;
@@ -45,7 +49,9 @@ var tokensOperations = function(contracts){
                     },
                     createToken(state,data){
                         var method = contracts.exchange.methods.createToken(data.symbol,data.name,data.supply);
-                        method.send({from:contracts.currentAccount});
+                        method.send({from:contracts.currentAccount}).catch((err)=>{
+                            EventBus.$emit('tokenCancelled',err);
+                        });
                     }
 
 

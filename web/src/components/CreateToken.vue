@@ -1,32 +1,30 @@
 <template>
-  <div class="hello">
-  <div><BackToHome></BackToHome></div>
-   <div>
-    <div>
-    Name:<input v-model="tokenName"/> 
-    </div>
-    <div>
-    Symbol:<input v-model="tokenSymbol"/> 
-    </div>
-    <div>
-    Total Supply:<input v-model="tokenSupply"/> 
-    </div>
-    <div>
-    Decimals:18
-    </div>
-    <div v-if="isLoading">creating token...............</div>
-    <div>
-      Your tokens:
-      <div v-for="(item,id) in existingTokens()" :key="id">
-       Address:{{item.token}}<BR/> <span v-if="item.isOnExchange==false" @click="putOnExchange(item.token)">Dodaj </span>
-      </div>
-    </div>
+<span>
+<BackToHome></BackToHome>
 
-  <div>
-    <button @click="createToken">  Create Token</button>
-  </div>
-   </div>
-  </div>
+<el-form :model="form" status-icon ref="form" label-width="120px">
+  <el-form-item label="Name" prop="tokenName">
+    <el-input v-model="form.tokenName" autocomplete="off"></el-input>
+  </el-form-item>
+  <el-form-item label="Symbol" prop="tokenSymbol">
+    <el-input v-model="form.tokenSymbol" autocomplete="off"></el-input>
+  </el-form-item>
+  <el-form-item label="Token Supply" prop="tokenSupply">
+    <el-input v-model.number="form.tokenSupply"></el-input>
+  </el-form-item>
+  <el-form-item label="Decimals" prop="decimals">
+    <el-input v-model.number="form.decimals" :disabled="true"></el-input>
+  </el-form-item>
+  <el-form-item  v-loading="isLoading">
+    <el-button type="primary" @click="createToken">Create Token</el-button>
+  </el-form-item>
+</el-form>
+
+</span>
+
+
+</span>
+  
 </template>
 
 <script>
@@ -38,16 +36,21 @@ export default {
   name: 'CreateToken',
   data () {
     return {
-      tokenName:'',
-      tokenSymbol:'',
-      tokenSupply:'',
-      tokenAddress:'',
-      isLoading:false
+        form:{
+        tokenName:'',
+        tokenSymbol:'',
+        tokenSupply:'',
+        tokenAddress:'',
+        decimals:18
+      },
+
+        isLoading:false
     }
   },
   mounted(){
     var that =this;
     EventBus.$on('newToken',this.tokenCreated);
+    EventBus.$on('tokenCancelled',this.tokenCancelled);
      EventBus.$on('newTokenExchange',this.updateTokenStatus);
   },
   computed: {
@@ -70,15 +73,19 @@ export default {
       this.$router.push({ name: 'PublishOnExchange', params: { address: addr } });
     },
     createToken:function(data){
+
       this.$store.dispatch('tokensOperations/createToken',{
-        name:this.tokenName,
-        symbol:this.tokenSymbol,
-        supply:this.toWei(this.tokenSupply)
+        name:this.form.tokenName,
+        symbol:this.form.tokenSymbol,
+        supply:this.toWei(this.form.tokenSupply)
       });
       this.isLoading=true;
     },
     updateTokenStatus:function(addr){
       this.$forceUpdate();
+    },
+    tokenCancelled:function(addr){
+      this.isLoading = false;
     },
     tokenCreated:function(data){
       var that = this;

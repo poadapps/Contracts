@@ -1,17 +1,19 @@
 <template>
-  <div class="hello" >
-   <div  v-if="tokAddr && tokAddr.length>0" class="never_collapsed">
-    <div v-if="!isLoaded">Loading....</div>
-    {{token.abbrev}}
-
-    
-    Amount: <input v-model="amountToBuy"/>
-       <button @click="buyTokens">  Buy for {{priceToBuy|toDollars}} xDai </button>
-    <button @click="sellTokens"> Sell for {{priceToSell|toDollars}} xDai  </button>
-   </div>
-   <div  v-if="tokAddr && tokAddr.length>0 == false" class="never_collapsed">
-   </div>
-  </div>
+  <span  v-if="tokAddr && tokAddr.length>0">
+    <el-form :inline="true" class="demo-form-inline">
+      <el-form-item :label="token.abbrev">
+      </el-form-item>
+      <el-form-item label="Amount">
+        <el-input v-model="amountToBuy" placeholder="amount to buy ex. 12.34"  :disabled="(tokAddr && tokAddr.length>0)==false"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="buyTokens"> Buy for {{priceToBuy|toDollars}} xDai</el-button>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="sellTokens"> Sell for {{priceToSell|toDollars}} xDai </el-button>
+      </el-form-item>
+    </el-form>
+  </span>
 </template>
 
 <script>
@@ -95,8 +97,5 @@ li {
 }
 a {
   color: #42b983;
-}
-.never_collapsed{
-  min-height:3em
 }
 </style>

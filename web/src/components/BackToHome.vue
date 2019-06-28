@@ -2,7 +2,10 @@
 
 
 <template>
-<span><a href="#" @click="moveUp">&lt;&lt;</a></span>
+<el-breadcrumb separator="/">
+  <el-breadcrumb-item :to="{ path: '/' }">homepage</el-breadcrumb-item>
+  <el-breadcrumb-item >current</el-breadcrumb-item>
+</el-breadcrumb>
 </template>
 
 <script>
