@@ -62,10 +62,12 @@ var contracts = new Promise((res,rej)=>{
                 if(hash.startsWith("0x")){
                     hash=hash.substr(2);
                 }
-                client.bzz.download(hash).then(x=>{
-                    res(x.text());
-                }).catch(ex=>{
-                    res(ex);
+                db.get(hash).map((e) => {
+                    console.log('data fetched from OrbitDB, data=',e.payload.value,' hash=',hash);
+                    res(e.payload.value);
+                    
+                }).catch((err)=>{
+                    res(err);
                 })
             });
         }
