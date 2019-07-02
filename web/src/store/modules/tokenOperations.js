@@ -41,20 +41,34 @@ var tokensOperations = function(contracts){
                                 console.error(err);
                                 return;
                             }
-                            var token={token:ev.returnValues.tokenAdr,creator:ev.returnValues.creator};
+                            var token=
+                            {
+                                token:ev.returnValues.tokenAdr,
+                                creator:ev.returnValues.creator,
+                                hash:"0x"+ev.returnValues.hash};
                             EventBus.$emit('newToken',token);
                             that.commit('tokensOperations/addToken',token);
                             that.commit('tokensOperations/updateBlock',ev.blockNumber);
                         })
                     },
                     createToken(state,data){
-                        var method = contracts.exchange.methods.createToken(data.symbol,data.name,data.supply);
-                        method.send({from:contracts.currentAccount}).catch((err)=>{
-                            EventBus.$emit('tokenCancelled',err);
+                        contracts.writeContent(data.content).then((hash)=>{
+                            EventBus.$emit("swarmSaved",hash);
+                        });
+
+                        EventBus.$on('swarmSaved',(hash)=>{
+                            var method = contracts.exchange.methods.createToken(data.symbol,data.name,data.supply,"0x"+hash);
+                            method.send({from:contracts.currentAccount}).catch((err)=>{
+                                EventBus.$emit('tokenCancelled',err);
+                            });
+
+                        });
+                    },
+                    saveContent(state,content){
+                        contracts.writeContent(content).then((hash)=>{
+                            EventBus.$emit('swarmSaved',hash);
                         });
                     }
-
-
                 }
             };
         }

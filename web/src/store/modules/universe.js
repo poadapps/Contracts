@@ -7,7 +7,8 @@ var universe = function(contracts){
                 blockHeight: -1,
                 mainTokenName: '',
                 mainTokenSupply: '',
-                latestAddress:''
+                latestAddress:'',
+                latestBalance:''
                 },
                 mutations: {
                     setBlockHeight (state,val) {
@@ -18,6 +19,9 @@ var universe = function(contracts){
                     },
                     setLatestAddress (state,val) {
                         state.latestAddress=val;
+                    },
+                    setLatestBalance (state,val) {
+                        state.latestBalance=val;
                     }
                 },
                 actions: {

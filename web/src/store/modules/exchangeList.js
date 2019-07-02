@@ -93,7 +93,7 @@ var exchangeList = function(contracts){
                             if(err==false){
                                 store.dispatch('tokensInfo/getTokenNameByAddress',ev.returnValues.token, {root:true}).then((data)=>{
                                     var data = {
-                                        name:'Token '+data.fullName,
+                                        name:data.fullName,
                                         abbrev:data.abbrev,
                                         tokSupply:data.tokSupply,
                                         address:ev.returnValues.token,

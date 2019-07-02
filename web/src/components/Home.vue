@@ -14,6 +14,24 @@
         <template slot="header" slot-scope="scope">
           <BuySell :tokAddr="selectedAddress"/>
         </template>
+          <el-table-column type="expand">
+            <template slot-scope="props">
+              <span  v-if="!Array.isArray(getOffer(props.row.address))">{{getOffer(props.row.address)}}</span>
+              <el-table v-if="Array.isArray(getOffer(props.row.address))"
+                :data="getOffer(props.row.address)"
+                highlight-current-row
+                style="width: 100%">
+                    <el-table-column min-width=15
+                      label="Price (tokens)"
+                      prop="price">
+                    </el-table-column>
+                    <el-table-column
+                      label="Description"
+                      prop="description">
+                    </el-table-column>
+              </el-table>
+            </template>
+          </el-table-column>
           <el-table-column min-width=15
             label="Symbol"
             prop="abbrev" >
@@ -25,7 +43,7 @@
           <el-table-column  min-width=30
             label="Total Supply"
             prop="tokSupply">
-          </el-table-column>
+          </el-table-column> 
           <el-table-column min-width=30
             label="Price"
             prop="price">
@@ -60,6 +78,13 @@ export default {
     },
     showDetails(record){
       this.$router.push('/token/'+record.row.address);
+    },
+    getOffer(adr){
+      var desc = this.$store.state.tokensInfo.tokensShares[adr].description;
+      try{
+        desc = JSON.parse(desc);
+      }catch(ex){}
+      return desc;
     }
   },
   computed: {
@@ -80,7 +105,6 @@ export default {
           tokSupply:that.fromWei(x.tokSupply),
           address:x.address
         };
-        console.log(x,retVal);
         return retVal;
       });
       if(list && list.length>0){

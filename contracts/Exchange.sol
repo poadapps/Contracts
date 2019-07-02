@@ -26,7 +26,7 @@ contract Exchange is Ownable {
 
   mapping (address=>TokenExchangeData) public exchangeData;
   mapping(bytes32=>uint128) public userShares;
-  mapping(address=>bool) public createdTokens;
+  mapping(address=>string) public createdTokens;
   address[] public legal_tokens;
 
 
@@ -55,13 +55,13 @@ contract Exchange is Ownable {
     totalFees = totalFees -sumForAmount;
   }
 
-  function createToken(string memory abb,string memory name,uint256 supply) public {
+  function createToken(string memory abb,string memory name,uint256 supply,string memory hashOfDesc) public {
     Proxy p = new Proxy(tokenTemplate);
 
     ITokenInitialize(address(p)).initialize(abb,name,18,supply);
-    emit NewToken(msg.sender,address(p));
+    emit NewToken(msg.sender,address(p),hashOfDesc);
     IERC20(address(p)).transfer(msg.sender,supply);
-    createdTokens[address(p)]=true;
+    createdTokens[address(p)]=hashOfDesc;
   }
 
   function getTokensShare(address _token,address _owner) public view returns(uint128){
@@ -74,12 +74,12 @@ contract Exchange is Ownable {
 
   function addToExchange(address _token,uint _supply,uint16 collateralIn10000, uint256 initialPrice) external payable{
     require(exchangeData[_token].total_shares==0,"token already added");
-
-    require(IERC20(address(exchangeCreatorToken)).balanceOf(msg.sender)>=createTokenPrice,"You need exchange creator's tokens to pay");
+    uint possesedBalance = IERC20(address(exchangeCreatorToken)).balanceOf(msg.sender);
+    require(possesedBalance>=createTokenPrice,"You need exchange creator's tokens to pay");
 
     IERC20(address(exchangeCreatorToken)).transferFrom(msg.sender,address(this),createTokenPrice);
 
-    require(createdTokens[_token],"token must be created by this contract");
+    require(bytes(createdTokens[_token]).length != 0,"token must be created by this contract");
 
     uint expectedCollateral = initialPrice*collateralIn10000/10000*_supply/(10**18);
     require(expectedCollateral<=msg.value,"collateral to small to register token");
@@ -194,13 +194,31 @@ contract Exchange is Ownable {
     return (price_per_10_18,exchangeData[_token].total_collateral,exchangeData[_token].total_tokens);
   }
 
-  function getSellPrice(address _token,uint amount) public view returns(uint){
-    uint price_per_10_18 = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/(exchangeData[_token].total_tokens+amount*10000/exchangeData[_token].collateral_parts_per_10000);
-    return price_per_10_18*amount/(10**18);
+  function isTradeAllowed(address _token,uint amountOfTokens) public view returns(bool){
+    uint priceWithCurrentCollateral = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/exchangeData[_token].total_tokens;
+    bool condition1 = amountOfTokens<exchangeData[_token].total_tokens*exchangeData[_token].collateral_parts_per_10000/10000;
+    bool condition2 = exchangeData[_token].total_collateral>2*priceWithCurrentCollateral*amountOfTokens/(10**18);
+    return condition1 && condition2;
   }
-  function getBuyPrice(address _token,uint amount) public view returns(uint){
-    uint price_per_10_18 = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/(exchangeData[_token].total_tokens-amount*10000/exchangeData[_token].collateral_parts_per_10000);
-    return price_per_10_18*amount/(10**18);
+
+  function getSellPrice(address _token,uint amountOfTokens) public view returns(uint){
+    require(isTradeAllowed(_token,amountOfTokens),'Too big Amount in single trade');
+    uint priceWithCurrentCollateral = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/exchangeData[_token].total_tokens;
+    uint expectedRemainingTokenAmount = exchangeData[_token].total_tokens + amountOfTokens;
+    uint expectedRemainingCollateral = exchangeData[_token].total_collateral-priceWithCurrentCollateral*amountOfTokens/(10**18);
+    uint predictedPrice = (expectedRemainingCollateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/expectedRemainingTokenAmount;
+    uint avg_price = (priceWithCurrentCollateral+predictedPrice)/2;
+    return avg_price*amountOfTokens/(10**18);
+  }
+
+  function getBuyPrice(address _token,uint amountOfTokens) public view returns(uint){
+    require(isTradeAllowed(_token,amountOfTokens),'Too big Amount in single trade');
+    uint priceWithCurrentCollateral = (exchangeData[_token].total_collateral*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/exchangeData[_token].total_tokens;
+    uint expectedRemainingTokenAmount = exchangeData[_token].total_tokens - amountOfTokens;
+    uint expectedRemainingCollateralUpperBound = exchangeData[_token].total_collateral+2*priceWithCurrentCollateral*amountOfTokens/(10**18);
+    uint predictedPrice = (expectedRemainingCollateralUpperBound*10000/exchangeData[_token].collateral_parts_per_10000)*(10**18)/expectedRemainingTokenAmount;
+    uint avg_price = (priceWithCurrentCollateral+predictedPrice)/2;
+    return avg_price*amountOfTokens/(10**18);
   }
 
   function getAllPrices(address[] memory tokens) public view returns(uint256[] memory){
@@ -222,7 +240,7 @@ contract Exchange is Ownable {
       price);
   }
 
-  event NewToken(address indexed creator,address tokenAdr);
+  event NewToken(address indexed creator,address tokenAdr,string hashOfDesc);
   event TokensBought(address indexed token,uint amount,uint totalSpent);
   event TokensSold(address indexed token,uint amount,uint totalSpent);
   event ExchangeDetails(address indexed token,uint token_supply,uint collateral_supply,uint16 collateral_per_10000,uint buyPrice);

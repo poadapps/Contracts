@@ -56,10 +56,14 @@ var exchangeList = function(contracts){
                         });
                     },
                     getTokenExchangeInformation(store,tokenAddress){
+                        var userXDAIBalanceInfo = contracts.web3;
                         var balanceInfo = contracts.getToken(tokenAddress).methods.balanceOf(contracts.currentAccount).call();
                         var exchangeDetails = contracts.exchange.methods.exchangeData(tokenAddress).call();
+                        var contentHash = contracts.exchange.methods.createdTokens(tokenAddress).call().then((hash)=>{
+                            return contracts.readContentByHash(hash);
+                        });
                         var userExchangeDetails = contracts.exchange.methods.getTokensShare(tokenAddress,contracts.currentAccount).call();
-                        Promise.all([balanceInfo,exchangeDetails,userExchangeDetails]).then((r,e)=>{
+                        Promise.all([balanceInfo,exchangeDetails,userExchangeDetails,contentHash]).then((r,e)=>{
                             if(e){
                                 return;
                             }
@@ -69,7 +73,8 @@ var exchangeList = function(contracts){
                                 tokenTotalShares:r[1].total_shares.toString(),
                                 collateralAmount:r[1].total_collateral.toString(),
                                 tokensAmount:r[1].total_tokens.toString(),
-                                usersShare:r[2].toString()
+                                usersShare:r[2].toString(),
+                                description:r[3].toString()
                             };
                             store.commit('addShare',{
                                 addr:tokenAddress,

@@ -1,13 +1,11 @@
 <template>
   <div class="hello">
-   Component To Remove Collateral of {{fullName}}
-   <div>You have {{numberOfSharesOwnedByUser}} Shares. </div>
    <div> <input v-model="amountOfSharesToRemove"/> Shares</div>
    <div v-if="isLoaded">
     represents {{assignedTokensAmount}} tokens and {{assignedXDaiAmount}} xDAI 
    </div>
-       <button @click="removeLiquidity">  Withdraw Shares </button>
-       <button @click="addLiquidity">  Buy Shares </button>
+       <el-button @click="removeLiquidity" type="primary" :disabled="notEnaughtShares()">  Withdraw Shares </el-button>
+       <el-button @click="addLiquidity" type="primary" :disabled="notEnaughtxDAI()">  Buy Shares </el-button>
   </div>
 </template>
 
@@ -21,7 +19,6 @@ export default {
       assignedTokensAmount:0,
       assignedXDaiAmount:0,
       numberOfSharesOwnedByUser:0,
-
     }
   },
   props:['tokAddr'],
@@ -34,6 +31,10 @@ export default {
     fullName:function(){
       var data = this.$store.getters['exchangeList/getTokenByAddress'](this.tokAddr);
       return data?data.name:'';
+    },
+    yourxDAIBalance:function(){
+      var data = this.$store.state.universe.latestBalance;
+      return this.fromWei(data);
     }
   },
   watch:{
@@ -49,6 +50,14 @@ export default {
         this.numberOfSharesOwnedByUser = this.fromWei(data.token.usersShare)*10000;
         this.isLoaded = true;
       }  
+    },
+    notEnaughtShares:function(){
+      var declaredAmount = parseInt(this.amountOfSharesToRemove);
+      return declaredAmount>this.numberOfSharesOwnedByUser || declaredAmount<=0;
+    },
+    notEnaughtxDAI:function(){
+      var declaredAmount = parseInt(this.amountOfSharesToRemove);
+      return this.yourxDAIBalance<this.assignedXDaiAmount || declaredAmount<=0;
     },
     updateShareAmounts:function(data){
       this.assignedTokensAmount = this.fromWei(data.tokensAmount);

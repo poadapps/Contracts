@@ -5,6 +5,9 @@ var buySell = function(contracts){
                     getBuyPrice(store,data){
                         return  contracts.exchange.methods.getBuyPrice(data.addr,data.amount).call();
                     },
+                    isTradeAllowed(store,data){
+                        return  contracts.exchange.methods.isTradeAllowed(data.addr,data.amount).call();
+                    },
                     getSellPrice(store,data){
                         return  contracts.exchange.methods.getSellPrice(data.addr,data.amount).call();
                     },

@@ -21,6 +21,7 @@ export default {
   name: 'BuySell',
   data () {
     return {
+      isError:false,
       amountToBuy:0,
       priceToBuy:'-',
       priceToSell:'-',
@@ -60,8 +61,22 @@ export default {
       this.token = tokDetails;
       
     },
+    isError:function(newOne,oldOne){
+      if(newOne){
+        this.$message({
+          showClose: true,
+          message: 'Amount to large for one tx',
+          type: 'error'
+        });
+      }
+    },
     tokAndSum:function(newVal,oldVal){
+      var that = this ;
       this.isLoaded=false;
+      var isTradeAllowed = this.$store.dispatch('buySell/isTradeAllowed',{
+        addr:this.tokAddr,
+        amount:this.toWei(this.amountToBuy)
+      });
       var getBuy = this.$store.dispatch('buySell/getBuyPrice',{
         addr:this.tokAddr,
         amount:this.toWei(this.amountToBuy)
@@ -70,13 +85,27 @@ export default {
         addr:this.tokAddr,
         amount:this.toWei(this.amountToBuy)
       });
-      Promise.all([getBuy,getSell]).then((ret)=>{
-        this.priceToBuy = ret[0].toString();
-        this.priceToSell = ret[1].toString();
-        this.isLoaded=true;
+      isTradeAllowed.then((status)=>{
+        if(status){
+            Promise.all([getBuy,getSell]).then((ret)=>{
+              that.priceToBuy = ret[0].toString();
+              that.priceToSell = ret[1].toString();
+              that.isLoaded=true;
+              that.isError = false;
+            }).catch((ex)=>{
+              that.priceToBuy = 0;
+              that.priceToSell = 0;
+              that.isLoaded = true;
+            });
+        }else{
+          that.priceToBuy = 0;
+          that.priceToSell = 0;
+          that.isLoaded = true;
+          that.isError = true;
+        }
       }).catch((ex)=>{
-        this.isLoaded = true;
-      });
+        that.isLoaded = true;
+      })
     }
   }
 }

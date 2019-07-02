@@ -33,6 +33,8 @@ getWeb3.then((contracts)=>{
     return (parseFloat(value)/10000).toString();
   })
 
+
+
   var store = new Vuex.Store(
     {
       modules:storeContentFactory(contracts)
@@ -48,6 +50,7 @@ getWeb3.then((contracts)=>{
       this.$store.dispatch('universe/readBlockchain')
       this.$store.dispatch('universe/getMainTokenName')
       this.$store.commit('universe/setLatestAddress',contracts.currentAccount)
+      this.$store.commit('universe/setLatestBalance',contracts.currentBalance)
       this.$store.dispatch('universe/detectAddressUpdate')
       this.$store.dispatch('tokensOperations/registerNewTokenListener')
       this.$store.dispatch('exchangeList/persistTokenListInLocalStorage')
