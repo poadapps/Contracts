@@ -99,7 +99,7 @@ var contracts = new Promise(async (res,rej)=>{
         );
                 
         web3.eth.getAccounts(function(e,...[curretAcc]){
-            cntrct.currentAccount = curretAcc;
+            cntrct.currentAccount = curretAcc[0];
             web3.eth.getBalance(cntrct.currentAccount,async (e,r)=>{
                 cntrct.currentBalance = r.toString();
                 var mainAddr = await cntrct.exchange.methods.exchangeCreatorToken().call();

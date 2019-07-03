@@ -37,8 +37,11 @@ var universe = function(contracts){
                     detectAddressUpdate(store){
                         setInterval(async ()=>{
                             var acc = await contracts.web3.eth.getAccounts();
+                            if(store.state.latestAddress===undefined){
+                                store.state.latestAddress="";
+                            }
                             if(store.state.latestAddress.toLowerCase()!==acc[0].toLowerCase()){
-                                    EventBus.$emit('accountUpdate',store.state.latestAddress);
+                                    EventBus.$emit('accountUpdate',acc[0].toLowerCase());
                                 }
                         },200)
 
