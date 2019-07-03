@@ -85,32 +85,29 @@ var exchangeList = function(contracts){
                             }
                         })
                     },
-                    getTokenListFromBlockchain(store){
+                    async getTokenListFromBlockchain(store){
                         contracts.exchange.events.NewExchange({
                         fromBlock: 0,
                         toBlock: 'latest'
-                        },(err,ev)=>{
+                        },async (err,ev)=>{
                             if(err==false){
-                                store.dispatch('tokensInfo/getTokenNameByAddress',ev.returnValues.token, {root:true}).then((data)=>{
-                                    var data = {
-                                        name:data.fullName,
-                                        abbrev:data.abbrev,
-                                        tokSupply:data.tokSupply,
-                                        address:ev.returnValues.token,
-                                        price:ev.returnValues.buyPrice.toString(),
-                                        latestUpdate:ev.blockNumber
-                                    };
-                                    store.commit('addListedToken',data)
-                                    store.commit('setLatestScannedBlock',ev.blockNumber)
-                                });
+                                var tokenDetails = await store.dispatch('tokensInfo/getTokenNameByAddress',ev.returnValues.token, {root:true});
+                                var data = {
+                                    name:tokenDetails.fullName,
+                                    abbrev:tokenDetails.abbrev,
+                                    tokSupply:tokenDetails.tokSupply,
+                                    address:ev.returnValues.token,
+                                    price:ev.returnValues.buyPrice.toString(),
+                                    latestUpdate:ev.blockNumber
+                                };
+                                store.commit('addListedToken',data)
+                                store.commit('setLatestScannedBlock',ev.blockNumber)
                             }
                             else{
                                 console.log('Event error',err)
                             }
                         })
                     }
-
-
                 }
             };
   };

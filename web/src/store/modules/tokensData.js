@@ -18,9 +18,8 @@ var exchangeList = function(contracts){
                 },
                 actions: {
                     getTokenNameByAddress(store,addr){
-                        return new Promise((res,rej)=>{
-                        contracts.getToken(addr).methods.getBasicData.call()
-                        .then((r)=>{
+                        return new Promise(async (res,rej)=>{
+                            var r = await contracts.getToken(addr).methods.getBasicData.call();
                             res(
                                 {   fullName:r.fullName,
                                     abbrev:r.abbrev,
@@ -29,7 +28,6 @@ var exchangeList = function(contracts){
                             }).catch((err)=>{
                                 rej(err);
                             });
-                        });
                     },
                     removeLiquidity(store,data){
                         var tokenAddress = data.token;
@@ -44,16 +42,15 @@ var exchangeList = function(contracts){
                         method.send({from:contracts.currentAccount,
                         value:collateralValue});
                     },
-                    computedReturnedDeposit(store,data){
+                    async computedReturnedDeposit(store,data){
                         var tokenAddress = data.token;
                         var amountToRedeem = data.sharesCount+"00000000000000" /* 10**18 to 10000 jednostek */;
-                        var sharesInfo = contracts.exchange.methods.computeReturnAmount(tokenAddress,amountToRedeem).call().then((data)=>{
-                            EventBus.$emit('shareAmountsComputed',
+                        var callRetVal = await contracts.exchange.methods.computeReturnAmount(tokenAddress,amountToRedeem).call()
+                        EventBus.$emit('shareAmountsComputed',
                             {
-                                tokensAmount : data.tokensAmount.toString(),
-                                daiAmount : data.daiAmount.toString()
+                                tokensAmount : callRetVal.tokensAmount.toString(),
+                                daiAmount : callRetVal.daiAmount.toString()
                             });
-                        });
                     },
                     getTokenExchangeInformation(store,tokenAddress){
                         var userXDAIBalanceInfo = contracts.web3;

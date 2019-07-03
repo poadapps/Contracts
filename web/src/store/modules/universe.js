@@ -30,19 +30,16 @@ var universe = function(contracts){
                         store.commit('setBlockHeight',r);
                         })
                     },
-                    getMainTokenName(store){
-                        contracts.mainToken.methods.name().call().then((r)=>{
-                        store.commit('setMainTokenName',r);
-                        })
-
+                    async getMainTokenName(store){
+                        var name = await contracts.mainToken.methods.name().call();
+                        store.commit('setMainTokenName',name);
                     },
                     detectAddressUpdate(store){
-                        setInterval(()=>{
-                            contracts.web3.eth.getAccounts().then((r)=>{
-                                if(store.state.latestAddress.toLowerCase()!==r[0].toLowerCase()){
+                        setInterval(async ()=>{
+                            var acc = await contracts.web3.eth.getAccounts();
+                            if(store.state.latestAddress.toLowerCase()!==acc[0].toLowerCase()){
                                     EventBus.$emit('accountUpdate',store.state.latestAddress);
                                 }
-                            });
                         },200)
 
                     }

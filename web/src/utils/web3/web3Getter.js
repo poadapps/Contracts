@@ -1,15 +1,11 @@
 import Web3 from 'web3';
 
-var web3Promise = new Promise((res,rej)=>{
+var web3Promise = new Promise(async (res,rej)=>{
   if (window.ethereum) {
     var web3 = new Web3(ethereum);
     try {
-      var ret = ethereum.enable();
-      ret.then(()=>{
-        res(web3); 
-      }).catch((err)=>{
-        rej(err);
-      })
+      var ret = await ethereum.enable();
+      res(web3); 
     } catch (error) {
       rej(error);
     }

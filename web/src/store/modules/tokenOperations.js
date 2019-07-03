@@ -45,16 +45,16 @@ var tokensOperations = function(contracts){
                             {
                                 token:ev.returnValues.tokenAdr,
                                 creator:ev.returnValues.creator,
-                                hash:"0x"+ev.returnValues.hash};
+                                hash:"0x"+ev.returnValues.hash
+                            };
                             EventBus.$emit('newToken',token);
                             that.commit('tokensOperations/addToken',token);
                             that.commit('tokensOperations/updateBlock',ev.blockNumber);
                         })
                     },
-                    createToken(state,data){
-                        contracts.writeContent(data.content).then((hash)=>{
-                            EventBus.$emit("swarmSaved",hash);
-                        });
+                    async createToken(state,data){
+                        var hash = await contracts.writeContent(data.content);
+                        EventBus.$emit("swarmSaved",hash);
 
                         EventBus.$on('swarmSaved',(hash)=>{
                             var method = contracts.exchange.methods.createToken(data.symbol,data.name,data.supply,"0x"+hash);
@@ -64,10 +64,9 @@ var tokensOperations = function(contracts){
 
                         });
                     },
-                    saveContent(state,content){
-                        contracts.writeContent(content).then((hash)=>{
-                            EventBus.$emit('swarmSaved',hash);
-                        });
+                    async saveContent(state,content){
+                        var hash = await contracts.writeContent(content);
+                        EventBus.$emit('swarmSaved',hash);
                     }
                 }
             };

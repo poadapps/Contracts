@@ -3,6 +3,7 @@ import * as exchange from "../../../../build/contracts/Exchange.json";
 import * as erc20 from "../../../../build/contracts/BaseERC20Token.json";
 import { get } from 'http';
 import EventBus from '../../components/common/eventBus'
+//import * as OrbitDB from 'orbit-db';
 
 
 var contracts = new Promise(async (res,rej)=>{
@@ -68,6 +69,7 @@ var contracts = new Promise(async (res,rej)=>{
             if(hash.startsWith("0x")){
                 hash=hash.substr(2);
             }
+            res("fooo");
             client.bzz.download(hash).then(x=>{
                 res(x.text());
             }).catch(ex=>{
@@ -96,8 +98,8 @@ var contracts = new Promise(async (res,rej)=>{
             networkDataOfExchange.address,
         );
                 
-        web3.eth.getAccounts(function(e,data){
-            cntrct.currentAccount = data[0];
+        web3.eth.getAccounts(function(e,...[curretAcc]){
+            cntrct.currentAccount = curretAcc;
             web3.eth.getBalance(cntrct.currentAccount,async (e,r)=>{
                 cntrct.currentBalance = r.toString();
                 var mainAddr = await cntrct.exchange.methods.exchangeCreatorToken().call();

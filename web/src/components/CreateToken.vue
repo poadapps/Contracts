@@ -175,13 +175,12 @@ export default {
     getContent:function(){
       return JSON.stringify(this.form.priceList);
     },
-    tokenCreated:function(data){
+    tokenCreated:async function(data){
       var that = this;
       if(data.creator.toLowerCase()===this.$store.state.universe.latestAddress){
         this.isLoading=false;
-        this.$store.dispatch('tokensInfo/getTokenNameByAddress',data.token).then((retVal)=>{
-          that.tokenName = retVal.fullName;
-        });
+        var tokDetails = await this.$store.dispatch('tokensInfo/getTokenNameByAddress',data.token);
+        that.tokenName = retVal.fullName;
       }
     }
   },

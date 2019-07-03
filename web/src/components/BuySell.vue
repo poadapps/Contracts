@@ -34,13 +34,12 @@ export default {
   },
   props:['tokAddr'],
   methods: {
-    buyTokens(){
-      this.$store.dispatch('buySell/buyTokens',{
+    async buyTokens(){
+      await this.$store.dispatch('buySell/buyTokens',{
         addr:this.tokAddr,
         amount:this.toWei(this.amountToBuy)
-      }).then(()=>{
-        this.amountToBuy = 0;
       });
+      this.amountToBuy = 0;
     },
     sellTokens(){
       this.$store.dispatch('buySell/sellTokens',{
@@ -65,15 +64,15 @@ export default {
       if(newOne){
         this.$message({
           showClose: true,
-          message: 'Amount to large for one tx',
+          message: 'Amount to large for one transaction',
           type: 'error'
         });
       }
     },
-    tokAndSum:function(newVal,oldVal){
+    tokAndSum:async function(newVal,oldVal){
       var that = this ;
       this.isLoaded=false;
-      var isTradeAllowed = this.$store.dispatch('buySell/isTradeAllowed',{
+      var isTradeAllowed = await this.$store.dispatch('buySell/isTradeAllowed',{
         addr:this.tokAddr,
         amount:this.toWei(this.amountToBuy)
       });
@@ -85,8 +84,8 @@ export default {
         addr:this.tokAddr,
         amount:this.toWei(this.amountToBuy)
       });
-      isTradeAllowed.then((status)=>{
-        if(status){
+      
+        if(isTradeAllowed){
             Promise.all([getBuy,getSell]).then((ret)=>{
               that.priceToBuy = ret[0].toString();
               that.priceToSell = ret[1].toString();
@@ -103,9 +102,6 @@ export default {
           that.isLoaded = true;
           that.isError = true;
         }
-      }).catch((ex)=>{
-        that.isLoaded = true;
-      })
     }
   }
 }

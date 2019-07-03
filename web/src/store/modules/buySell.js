@@ -11,31 +11,25 @@ var buySell = function(contracts){
                     getSellPrice(store,data){
                         return  contracts.exchange.methods.getSellPrice(data.addr,data.amount).call();
                     },
-                    buyTokens(store,data){
+                    async buyTokens(store,data){
                         var address = data.addr;
                         var amount = data.amount;
-                        return new Promise((res,rej)=>{
-                            store.dispatch('getBuyPrice',data).then((price)=>{
-                                price = price.mul(105);
-                                price = price.div(100);
-                                var total = price;
-                                var method = contracts.exchange.methods.buy(address,amount);
-                                method.send({value:total.toString(),from:contracts.currentAccount});
-                                res(true);
-                            });
-                        })
+                        var price = await store.dispatch('getBuyPrice',data);
+                        price = price.mul(105);
+                        price = price.div(100);
+                        var total = price;
+                        var method = contracts.exchange.methods.buy(address,amount);
+                        await method.send({value:total.toString(),from:contracts.currentAccount});
+                        return true;
                     },
-                    sellTokens(store,data){
+                    async sellTokens(store,data){
                         var address = data.addr;
                         var amount = data.amount;
-                        return new Promise((res,rej)=>{
-                            store.dispatch('getSellPrice',data).then((price)=>{
-                                var total = price;
-                                var method = contracts.exchange.methods.sell(address,amount);
-                                method.send({from:contracts.currentAccount});
-                                res(true);
-                            });
-                        })
+                        var price = await store.dispatch('getBuyPrice',data);
+                        var total = price;
+                        var method = contracts.exchange.methods.sell(address,amount);
+                        await method.send({from:contracts.currentAccount});
+                        return true;
                     }
                 }
             }
