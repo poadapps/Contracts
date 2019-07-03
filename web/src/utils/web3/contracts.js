@@ -5,7 +5,7 @@ import { get } from 'http';
 import EventBus from '../../components/common/eventBus'
 
 
-var contracts = new Promise((res,rej)=>{
+var contracts = new Promise(async (res,rej)=>{
         
     var cntrct = {
         exchange:undefined,
@@ -22,6 +22,7 @@ var contracts = new Promise((res,rej)=>{
     const IPFS = require('ipfs')
     const OrbitDB = require('orbit-db')
     const ipfsOptions = {
+      EXPERIMENTAL: {
       EXPERIMENTAL: {
         pubsub: true
       }
@@ -75,43 +76,36 @@ var contracts = new Promise((res,rej)=>{
         });
     }
     try{
-
-        getWeb3.then((w3)=>{
-            cntrct.web3 = w3.web3;
-            w3.web3.eth.net.getId().then((id)=>{
-                var networkDataOfExchange = exchange.networks[id];
-                var abi1 = exchange.abi;
-                var networkDataOfERC20 = erc20.networks[id];
-                var abi2 = erc20.abi;
-                cntrct.networkId = id;
-                cntrct.getToken = function(adr){
-                    return cntrct.web3.eth.Contract(
-                        abi2,
-                        adr,
-                    );
-                }
-                cntrct.exchange=cntrct.web3.eth.Contract(
-                    abi1,
-                    networkDataOfExchange.address,
-                );
+        var w3 = await getWeb3;
+        cntrct.web3 = w3.web3;
+        var id = await w3.web3.eth.net.getId();
+        console.log('network Id=',id);
+        var networkDataOfExchange = exchange.networks[id];
+        var abi1 = exchange.abi;
+        var networkDataOfERC20 = erc20.networks[id];
+        var abi2 = erc20.abi;
+        cntrct.networkId = id;
+        cntrct.getToken = function(adr){
+            return cntrct.web3.eth.Contract(
+                abi2,
+                adr,
+            );
+        }
+        cntrct.exchange=cntrct.web3.eth.Contract(
+            abi1,
+            networkDataOfExchange.address,
+        );
                 
-                web3.eth.getAccounts(function(e,data){
-                    cntrct.currentAccount = data[0];
-                    web3.eth.getBalance(cntrct.currentAccount,(e,r)=>{
-                        cntrct.currentBalance = r.toString();
-
-
-                        cntrct.exchange.methods.exchangeCreatorToken().call().then((ard)=>{
-
-                            cntrct.mainToken=cntrct.web3.eth.Contract(
-                                abi2,
-                                ard,
-                            );
-                            res(cntrct);
-                        });
-                    });
-                })
-            })
+        web3.eth.getAccounts(function(e,data){
+            cntrct.currentAccount = data[0];
+            web3.eth.getBalance(cntrct.currentAccount,async (e,r)=>{
+                cntrct.currentBalance = r.toString();
+                var mainAddr = await cntrct.exchange.methods.exchangeCreatorToken().call();
+                cntrct.mainToken=cntrct.web3.eth.Contract(
+                    abi2,
+                    mainAddr);
+                res(cntrct);
+            });
         })
     }catch(ex){
         rej(ex);
