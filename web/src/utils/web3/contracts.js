@@ -6,15 +6,6 @@ import EventBus from '../../components/common/eventBus'
 
 
 var contracts = new Promise((res,rej)=>{
-
-    const IPFS = require('ipfs')
-    const OrbitDB = require('orbit-db')
-    const ipfsOptions = {
-      EXPERIMENTAL: {
-        pubsub: true
-      }
-    }
-    
         
     var cntrct = {
         exchange:undefined,
@@ -27,6 +18,15 @@ var contracts = new Promise((res,rej)=>{
         currentBalance:undefined,
         networkId:undefined
     }
+/*
+    const IPFS = require('ipfs')
+    const OrbitDB = require('orbit-db')
+    const ipfsOptions = {
+      EXPERIMENTAL: {
+        pubsub: true
+      }
+    }
+    
 
     const dbConfig = {
         // If database doesn't exist, create it
@@ -46,33 +46,34 @@ var contracts = new Promise((res,rej)=>{
       const orbitdb = new OrbitDB(ipfs);
       orbitdb.feed('my-tokens',dbConfig).then((db)=>{
 
-        cntrct.writeContent = function(content){
-            return new Promise((res,rej)=>{
-                return db.add(content).then((x)=>{
-                    console.log('data stored to OrbitDB, data=',content,' hash=',x);
-                    res(x);
-                }).catch((err)=>{
-                    res(err);
-                })
-            });
-        }
-    
-        cntrct.readContentByHash = function(hash){
-            return new Promise((res,rej)=>{
-                if(hash.startsWith("0x")){
-                    hash=hash.substr(2);
-                }
-                client.bzz.download(hash).then(x=>{
-                    res(x.text());
-                }).catch(ex=>{
-                    res(ex);
-                })
-            });
-        }
       })
 
     })
+    */
 
+    cntrct.writeContent = function(content){
+        return new Promise((res,rej)=>{
+            return db.add(content).then((x)=>{
+                console.log('data stored to OrbitDB, data=',content,' hash=',x);
+                res(x);
+            }).catch((err)=>{
+                res(err);
+            })
+        });
+    }
+
+    cntrct.readContentByHash = function(hash){
+        return new Promise((res,rej)=>{
+            if(hash.startsWith("0x")){
+                hash=hash.substr(2);
+            }
+            client.bzz.download(hash).then(x=>{
+                res(x.text());
+            }).catch(ex=>{
+                res(ex);
+            })
+        });
+    }
     try{
 
         getWeb3.then((w3)=>{
