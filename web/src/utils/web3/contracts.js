@@ -5,6 +5,7 @@ import { get } from 'http';
 import EventBus from '../../components/common/eventBus'
 //import * as OrbitDB from 'orbit-db';
 
+//const OrbitDB = require('orbit-db')
 
 var contracts = new Promise(async (res,rej)=>{
         
@@ -19,16 +20,13 @@ var contracts = new Promise(async (res,rej)=>{
         currentBalance:undefined,
         networkId:undefined
     }
-/*
-    const IPFS = require('ipfs')
-    const OrbitDB = require('orbit-db')
     const ipfsOptions = {
-      EXPERIMENTAL: {
-      EXPERIMENTAL: {
-        pubsub: true
+        EXPERIMENTAL: {
+          pubsub: true
+        }
       }
-    }
-    
+
+    const ipfs = new Ipfs(ipfsOptions)
 
     const dbConfig = {
         // If database doesn't exist, create it
@@ -42,41 +40,51 @@ var contracts = new Promise(async (res,rej)=>{
         admin: ['*'],
         write: ['*'],
       }
+      ipfs.on('ready',async () => {
+        console.log('Ipfs works!')
+        const orbitdb = await OrbitDB.createInstance(ipfs);
+        orbitdb.feed('my-tokens',dbConfig).then((db)=>{
+            console.log('OrbitDB works!')
+            cntrct.writeContent = function(content){
+                return new Promise((res,rej)=>{
+                    return db.add(content).then((x)=>{
+                        console.log('data stored to OrbitDB, data=',content,' hash=',x);
+                        res(x);
+                    }).catch((err)=>{
+                        res(err);
+                    })
+                });
+            }
+    
+            cntrct.readContentByHash = function(hash){
+                return new Promise((res,rej)=>{
+                    console.log('trying reading from OrbitDB, hash=',hash);
+                    if(hash.startsWith("0x")){
+                        hash=hash.substr(2);
+                    }
+                    var events = db.get(hash);
+                    var data = undefined;
+                    if(events){
+                        console.log('OrbitDB events not null',events);
+                        data = events.map((e) => e.payload.value);
+                        console.log('data',data);
+                    }
+                    
+                    res("ffffffoooooooooo")
+                });
+            }
+        })
 
-    const ipfs = new IPFS(ipfsOptions)
-    ipfs.on('ready', () => {
-      const orbitdb = new OrbitDB(ipfs);
-      orbitdb.feed('my-tokens',dbConfig).then((db)=>{
 
+  
       })
+/*
+    const IPFS = require('ipfs')
+    const OrbitDB = require('orbit-db')
+    
 
-    })
     */
 
-    cntrct.writeContent = function(content){
-        return new Promise((res,rej)=>{
-            return db.add(content).then((x)=>{
-                console.log('data stored to OrbitDB, data=',content,' hash=',x);
-                res(x);
-            }).catch((err)=>{
-                res(err);
-            })
-        });
-    }
-
-    cntrct.readContentByHash = function(hash){
-        return new Promise((res,rej)=>{
-            if(hash.startsWith("0x")){
-                hash=hash.substr(2);
-            }
-            res("fooo");
-            client.bzz.download(hash).then(x=>{
-                res(x.text());
-            }).catch(ex=>{
-                res(ex);
-            })
-        });
-    }
     try{
         var w3 = await getWeb3;
         cntrct.web3 = w3.web3;

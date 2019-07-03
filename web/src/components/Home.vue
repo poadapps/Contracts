@@ -80,7 +80,8 @@ export default {
       this.$router.push('/token/'+record.row.address);
     },
     getOffer(adr){
-      var desc = this.$store.state.tokensInfo.tokensShares[adr].description;
+      var rec = this.$store.state.tokensInfo.tokensShares[adr];
+      var desc = rec.description;
       try{
         desc = JSON.parse(desc);
       }catch(ex){}
