@@ -180,7 +180,7 @@ export default {
       if(data.creator.toLowerCase()===this.$store.state.universe.latestAddress){
         this.isLoading=false;
         var tokDetails = await this.$store.dispatch('tokensInfo/getTokenNameByAddress',data.token);
-        that.tokenName = retVal.fullName;
+        that.tokenName = tokDetails.fullName;
       }
     }
   },

@@ -2,7 +2,7 @@
 import EventBus from '../../components/common/eventBus'
 
 
-var exchangeList = function(contracts){
+var exchangeList = function(contracts,mixins){
     var getByAddress = (that,filterAddress)=>{
         return that.getters['exchangeList/getTokenByAddress'](filterAddress);
     }

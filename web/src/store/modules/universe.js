@@ -1,6 +1,6 @@
 
 import EventBus from '../../components/common/eventBus'
-var universe = function(contracts){
+var universe = function(contracts,mixins){
       
     return{
                 state: {

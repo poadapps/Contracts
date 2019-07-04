@@ -16,6 +16,9 @@ const myMixin = function(web3){
                     return "0";
                 }
             },
+            getRandom(){
+                return Math.floor((Math.random() * 1000000000) + 1);
+            },
             cutDigits(value,numberOfDigits) {
                 try{
                     if(value.indexOf(".")!=-1){

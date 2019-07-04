@@ -1,4 +1,4 @@
-var buySell = function(contracts){
+var buySell = function(contracts,mixins){
       
     return{
                 actions: {

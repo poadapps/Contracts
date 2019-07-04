@@ -1,7 +1,7 @@
 
 import EventBus from '../../components/common/eventBus'
-var exchangeList = function(contracts){
-      
+var exchangeList = function(contracts,mixins){
+      var getRandom = mixins.methods.getRandom;
     return{
                 state: {
                     tokensShares:{}
@@ -57,7 +57,24 @@ var exchangeList = function(contracts){
                         var balanceInfo = contracts.getToken(tokenAddress).methods.balanceOf(contracts.currentAccount).call();
                         var exchangeDetails = contracts.exchange.methods.exchangeData(tokenAddress).call();
                         var contentHash = contracts.exchange.methods.createdTokens(tokenAddress).call().then((hash)=>{
-                            return contracts.readContentByHash(hash);
+                            return new Promise((res,rej)=>{
+                                var id = getRandom();
+                                EventBus.$on('contentLoaded',(x)=>{
+                                    if(x.id==id){
+                                        if(x.content==undefined){
+                                            res('');
+                                        }
+                                        else{
+                                            res(x.content);
+                                        }
+                                    }
+                                });
+                                EventBus.$on('contentLoadedError',(x)=>{rej(x)});
+                                EventBus.$emit('loadContent',{
+                                    id:id,
+                                    hash:hash
+                                })
+                            });
                         });
                         var userExchangeDetails = contracts.exchange.methods.getTokensShare(tokenAddress,contracts.currentAccount).call();
                         Promise.all([balanceInfo,exchangeDetails,userExchangeDetails,contentHash]).then((r,e)=>{

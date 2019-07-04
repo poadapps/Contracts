@@ -4,6 +4,7 @@ import Home from '@/components/Home'
 import BackToHome from '@/components/BackToHome'
 import TokenInfo from '@/components/TokenInfo'
 import CreateToken from '@/components/CreateToken'
+import TestOrbitDB from '@/components/TestOrbitDB'
 import PublishOnExchange from '@/components/PublishOnExchange'
 
 Vue.use(Router)
@@ -24,6 +25,11 @@ export default new Router({
       path: '/newToken',
       name: 'NewToken',
       component: CreateToken
+    },
+    {
+      path: '/TestOrbitDB',
+      name: 'TestOrbitDB',
+      component: TestOrbitDB
     },
     {
       path: '/publishOnExchange/:address',

@@ -4,14 +4,16 @@ import exchangeListFactory from './modules/exchangeList'
 import buySellFactory from './modules/buySell'
 import tokensDataFactory from './modules/tokensData'
 import tokensOperationsFactory from './modules/tokenOperations'
+import web3Op from '../mixins/web3Op'
 
   const store = function(contracts){
       
-    var univData =universeFactory(contracts);
-    var exchangeListData =exchangeListFactory(contracts);
-    var buySellData =buySellFactory(contracts);
-    var tokensData = tokensDataFactory(contracts);
-    var tokensOperations = tokensOperationsFactory(contracts);
+    var web3Mixin = web3Op(contracts.web3);
+    var univData =universeFactory(contracts,web3Mixin);
+    var exchangeListData =exchangeListFactory(contracts,web3Mixin);
+    var buySellData =buySellFactory(contracts,web3Mixin);
+    var tokensData = tokensDataFactory(contracts,web3Mixin);
+    var tokensOperations = tokensOperationsFactory(contracts,web3Mixin);
     univData.namespaced = true;
     exchangeListData.namespaced = true;
     tokensData.namespaced = true;

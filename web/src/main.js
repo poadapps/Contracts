@@ -9,6 +9,7 @@ import router from './router'
 import priceUpdater from './businessObjects/priceUpdater'
 import storeContentFactory from './store/index'
 import getWeb3 from './utils/web3/contracts'
+import orbitDB from './utils/orbitDB'
 import web3Op from './mixins/web3Op'
 import { type } from 'os';
 import EventBus from './components/common/eventBus'

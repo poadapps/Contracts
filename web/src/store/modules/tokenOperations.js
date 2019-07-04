@@ -1,6 +1,7 @@
 
 import EventBus from '../../components/common/eventBus'
-var tokensOperations = function(contracts){
+var tokensOperations = function(contracts,mixins){
+    var getRandom = mixins.methods.getRandom;
       
     return{
                 state: {
@@ -45,7 +46,7 @@ var tokensOperations = function(contracts){
                             {
                                 token:ev.returnValues.tokenAdr,
                                 creator:ev.returnValues.creator,
-                                hash:"0x"+ev.returnValues.hash
+                                hash:ev.returnValues.hash
                             };
                             EventBus.$emit('newToken',token);
                             that.commit('tokensOperations/addToken',token);
@@ -53,8 +54,17 @@ var tokensOperations = function(contracts){
                         })
                     },
                     async createToken(state,data){
-                        var hash = await contracts.writeContent(data.content);
-                        EventBus.$emit("swarmSaved",hash);
+
+                        var dto ={
+                            id:getRandom(),
+                            content:data
+                        }
+                        EventBus.$on('contentSaved',(data)=>{
+                            if(data.id==dto.id){
+                                EventBus.$emit("swarmSaved",data.hash);
+                            }
+                        })
+                        EventBus.$emit('saveContent',dto);
 
                         EventBus.$on('swarmSaved',(hash)=>{
                             var method = contracts.exchange.methods.createToken(data.symbol,data.name,data.supply,"0x"+hash);
@@ -63,10 +73,6 @@ var tokensOperations = function(contracts){
                             });
 
                         });
-                    },
-                    async saveContent(state,content){
-                        var hash = await contracts.writeContent(content);
-                        EventBus.$emit('swarmSaved',hash);
                     }
                 }
             };
