@@ -16,9 +16,9 @@ import EventBus from '../components/common/eventBus'
         // If database doesn't exist, create it
         create: true,
         // Don't wait to load from the network
-        sync: false,
+        sync: true,
         // Load only the local version of the database
-        localOnly: true,
+        localOnly: false,
         // Allow anyone to write to the database,
         // otherwise only the creator of the database can write
         admin: ['*'],
@@ -26,9 +26,17 @@ import EventBus from '../components/common/eventBus'
       }
       ipfs.on('ready',async () => {
         console.log('Ipfs works!')
+        window.myIpfs = ipfs;
         const orbitdb = await OrbitDB.createInstance(ipfs);
         orbitdb.feed('my-tokens',dbConfig).then((db)=>{
             console.log('OrbitDB works!', db.id)
+
+            db.events.on('ready', () => {
+                const posts = db.iterator().collect()
+                posts.forEach((post) => console.log('content from DB',post))
+                // Hello
+                // World  
+            })
             var writeContent = function(content){
                 console.log('try to store data to OrbitDB=',content);
                 return new Promise((res,rej)=>{
@@ -40,7 +48,12 @@ import EventBus from '../components/common/eventBus'
                     })
                 });
             }
-    
+
+            // Listen for updates from peers
+            db.events.on('replicated', (address) => {
+                console.log('replicated',db.iterator({ limit: -1 }).collect())
+            })
+
             var readContentByHash = function(hash){
                 return new Promise((res,rej)=>{
                     if(hash.startsWith("0x")){
